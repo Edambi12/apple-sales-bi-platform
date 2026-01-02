@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import logo from "@/assets/logo.png";
 
 const footerLinks = {
   "Acheter et découvrir": [
@@ -58,9 +59,10 @@ export function Footer() {
         {/* Bottom Section */}
         <div className="border-t border-border pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <img src={logo} alt="APPLE Demo" className="h-4 w-auto opacity-50" />
               Copyright © 2024 APPLE Demo. Tous droits réservés.
-            </p>
+            </div>
             <p className="text-xs text-muted-foreground text-center">
               Projet de démonstration — Aucune affiliation avec Apple Inc.
             </p>
