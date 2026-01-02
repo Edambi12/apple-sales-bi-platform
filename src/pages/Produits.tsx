@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useParams } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { ProductFilters } from "@/components/products/ProductFilters";
+import { ProductGrid } from "@/components/products/ProductGrid";
+import { ProductDetail } from "@/components/products/ProductDetail";
+import { products, getProductsByCategory, searchProducts, getProductById } from "@/data/products";
 import {
   Select,
   SelectContent,
@@ -9,187 +12,97 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, SlidersHorizontal, Grid3X3, List, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
-
-const categories = [
-  "Tous",
-  "Smartphones",
-  "Ordinateurs",
-  "Tablettes",
-  "Accessoires",
-];
-
-const products = [
-  {
-    id: 1,
-    name: "Smartphone Pro Max",
-    category: "Smartphones",
-    price: 1299,
-    image: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=600&q=80",
-    badge: "Nouveau",
-    year: 2024,
-  },
-  {
-    id: 2,
-    name: "Smartphone Pro",
-    category: "Smartphones",
-    price: 1099,
-    image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&q=80",
-    badge: null,
-    year: 2024,
-  },
-  {
-    id: 3,
-    name: "Laptop Pro 16\"",
-    category: "Ordinateurs",
-    price: 2499,
-    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&q=80",
-    badge: "Populaire",
-    year: 2024,
-  },
-  {
-    id: 4,
-    name: "Laptop Air 15\"",
-    category: "Ordinateurs",
-    price: 1499,
-    image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600&q=80",
-    badge: null,
-    year: 2023,
-  },
-  {
-    id: 5,
-    name: "Tablet Pro 12.9\"",
-    category: "Tablettes",
-    price: 1199,
-    image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=600&q=80",
-    badge: "Nouveau",
-    year: 2024,
-  },
-  {
-    id: 6,
-    name: "Tablet 10.9\"",
-    category: "Tablettes",
-    price: 599,
-    image: "https://images.unsplash.com/photo-1585790050230-5dd28404ccb9?w=600&q=80",
-    badge: null,
-    year: 2023,
-  },
-  {
-    id: 7,
-    name: "Écouteurs Pro",
-    category: "Accessoires",
-    price: 299,
-    image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&q=80",
-    badge: null,
-    year: 2024,
-  },
-  {
-    id: 8,
-    name: "Montre Series 9",
-    category: "Accessoires",
-    price: 449,
-    image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=600&q=80",
-    badge: "Populaire",
-    year: 2024,
-  },
-];
+import { SlidersHorizontal } from "lucide-react";
 
 const Produits = () => {
+  const { id } = useParams();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("Tous");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("nouveaute");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
-  const filteredProducts = products
-    .filter((product) => {
-      const matchesSearch = product.name
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-      const matchesCategory =
-        selectedCategory === "Tous" || product.category === selectedCategory;
-      return matchesSearch && matchesCategory;
-    })
-    .sort((a, b) => {
+  // If viewing a specific product
+  const selectedProduct = id ? getProductById(id) : null;
+
+  // Filter and sort products
+  const filteredProducts = useMemo(() => {
+    let result = selectedCategory === "all" 
+      ? products 
+      : getProductsByCategory(selectedCategory);
+
+    if (searchQuery) {
+      result = result.filter(p => 
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Sort
+    return [...result].sort((a, b) => {
       if (sortBy === "prix-asc") return a.price - b.price;
       if (sortBy === "prix-desc") return b.price - a.price;
-      if (sortBy === "nouveaute") return b.year - a.year;
+      if (sortBy === "nouveaute") return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0);
+      if (sortBy === "rating") return b.rating - a.rating;
       return 0;
     });
+  }, [selectedCategory, searchQuery, sortBy]);
+
+  // Show product detail page
+  if (selectedProduct) {
+    return <ProductDetail product={selectedProduct} />;
+  }
 
   return (
     <Layout>
       {/* Header */}
-      <section className="section-padding bg-secondary/30">
-        <div className="container-wide text-center">
-          <h1 className="text-display mb-6">Nos produits</h1>
-          <p className="text-body-large max-w-2xl mx-auto">
+      <section className="relative py-20 overflow-hidden">
+        {/* Background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-secondary/50 to-background" />
+        <div className="absolute top-1/4 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-1/4 w-64 h-64 bg-accent/10 rounded-full blur-3xl" />
+        
+        <div className="container-wide relative z-10 text-center">
+          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
+            <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+            {products.length} produits disponibles
+          </span>
+          <h1 className="text-display mb-6 animate-fade-up">
+            Nos <span className="text-primary">produits</span>
+          </h1>
+          <p className="text-body-large max-w-2xl mx-auto animate-fade-up" style={{ animationDelay: "100ms" }}>
             Découvrez notre gamme complète de produits innovants conçus pour
-            vous accompagner au quotidien.
+            transformer votre quotidien.
           </p>
         </div>
       </section>
 
-      {/* Filters */}
-      <section className="sticky top-12 z-30 bg-background/95 backdrop-blur-md border-b border-border py-4">
+      {/* Filters Section */}
+      <section className="sticky top-12 z-30 bg-background/95 backdrop-blur-md border-b border-border py-6">
         <div className="container-wide">
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            {/* Search */}
-            <div className="relative w-full md:w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher un produit..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+          <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
+            <ProductFilters
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+            />
 
-            {/* Category Filters */}
-            <div className="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
-              {categories.map((category) => (
-                <Button
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "secondary"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(category)}
-                  className="whitespace-nowrap"
-                >
-                  {category}
-                </Button>
-              ))}
-            </div>
-
-            {/* Sort & View */}
-            <div className="flex gap-2 items-center">
+            {/* Sort */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                {filteredProducts.length} résultat{filteredProducts.length > 1 ? 's' : ''}
+              </span>
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-44 bg-secondary/50 border-border/50">
                   <SlidersHorizontal className="w-4 h-4 mr-2" />
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="nouveaute">Nouveauté</SelectItem>
+                  <SelectItem value="nouveaute">Nouveautés</SelectItem>
                   <SelectItem value="prix-asc">Prix croissant</SelectItem>
                   <SelectItem value="prix-desc">Prix décroissant</SelectItem>
+                  <SelectItem value="rating">Meilleures notes</SelectItem>
                 </SelectContent>
               </Select>
-
-              <div className="flex border border-border rounded-lg overflow-hidden">
-                <Button
-                  variant={viewMode === "grid" ? "secondary" : "ghost"}
-                  size="icon"
-                  onClick={() => setViewMode("grid")}
-                >
-                  <Grid3X3 className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant={viewMode === "list" ? "secondary" : "ghost"}
-                  size="icon"
-                  onClick={() => setViewMode("list")}
-                >
-                  <List className="w-4 h-4" />
-                </Button>
-              </div>
             </div>
           </div>
         </div>
@@ -198,65 +111,7 @@ const Produits = () => {
       {/* Products Grid */}
       <section className="section-padding">
         <div className="container-wide">
-          <div
-            className={
-              viewMode === "grid"
-                ? "grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-                : "space-y-4"
-            }
-          >
-            {filteredProducts.map((product) => (
-              <Link
-                key={product.id}
-                to={`/produits/${product.id}`}
-                className={`group block bg-card rounded-2xl overflow-hidden hover-lift transition-all ${
-                  viewMode === "list" ? "flex items-center gap-6 p-4" : ""
-                }`}
-              >
-                {/* Image */}
-                <div
-                  className={`relative overflow-hidden bg-secondary/50 ${
-                    viewMode === "list" ? "w-32 h-32 rounded-xl" : "aspect-square"
-                  }`}
-                >
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  {product.badge && (
-                    <span className="absolute top-3 left-3 px-3 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-full">
-                      {product.badge}
-                    </span>
-                  )}
-                </div>
-
-                {/* Content */}
-                <div className={viewMode === "list" ? "flex-1" : "p-5"}>
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider">
-                    {product.category}
-                  </span>
-                  <h3 className="text-lg font-semibold mt-1 group-hover:text-primary transition-colors">
-                    {product.name}
-                  </h3>
-                  <div className="flex items-center justify-between mt-3">
-                    <span className="text-xl font-semibold">
-                      {product.price.toLocaleString("fr-FR")} €
-                    </span>
-                    <span className="text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-sm">
-                      Voir <ArrowRight className="w-4 h-4" />
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          {filteredProducts.length === 0 && (
-            <div className="text-center py-20">
-              <p className="text-muted-foreground">Aucun produit trouvé.</p>
-            </div>
-          )}
+          <ProductGrid products={filteredProducts} />
         </div>
       </section>
     </Layout>
