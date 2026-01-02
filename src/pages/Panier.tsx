@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { PaymentForm } from "@/components/checkout/PaymentForm";
 import { OrderConfirmation } from "@/components/checkout/OrderConfirmation";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CartItem {
   id: number;
@@ -14,6 +15,16 @@ interface CartItem {
   price: number;
   quantity: number;
   image: string;
+}
+
+interface ShippingInfo {
+  firstName: string;
+  lastName: string;
+  address: string;
+  postalCode: string;
+  city: string;
+  country: string;
+  email: string;
 }
 
 const initialCart: CartItem[] = [
@@ -38,6 +49,15 @@ const Panier = () => {
   const [step, setStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
+  const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({
+    firstName: "",
+    lastName: "",
+    address: "",
+    postalCode: "",
+    city: "",
+    country: "",
+    email: "",
+  });
 
   const updateQuantity = (id: number, delta: number) => {
     setCart((prev) =>
@@ -59,7 +79,56 @@ const Panier = () => {
   const shipping = subtotal > 500 ? 0 : 9.99;
   const total = subtotal + shipping;
 
-  if (cart.length === 0) {
+  const sendOrderConfirmationEmail = async (newOrderNumber: string, paymentData: {
+    cardName?: string;
+    addressLine1?: string;
+    city?: string;
+    postalCode?: string;
+    country?: string;
+  }) => {
+    try {
+      const customerName = shippingInfo.firstName && shippingInfo.lastName 
+        ? `${shippingInfo.firstName} ${shippingInfo.lastName}`
+        : paymentData.cardName || "Client";
+      
+      const customerEmail = shippingInfo.email || "edamketata8@gmail.com";
+
+      const { data, error } = await supabase.functions.invoke("send-order-confirmation", {
+        body: {
+          orderNumber: newOrderNumber,
+          customerName,
+          customerEmail,
+          total,
+          items: cart.map((item) => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+          shippingAddress: {
+            address: shippingInfo.address || paymentData.addressLine1 || "",
+            city: shippingInfo.city || paymentData.city || "",
+            postalCode: shippingInfo.postalCode || paymentData.postalCode || "",
+            country: shippingInfo.country || paymentData.country || "",
+          },
+        },
+      });
+
+      if (error) {
+        console.error("Error sending email:", error);
+        toast({
+          title: "Avertissement",
+          description: "La commande est confirmée mais l'email n'a pas pu être envoyé.",
+          variant: "destructive",
+        });
+      } else {
+        console.log("Email sent successfully:", data);
+      }
+    } catch (err) {
+      console.error("Error calling email function:", err);
+    }
+  };
+
+  if (cart.length === 0 && step !== 4) {
     return (
       <Layout>
         <section className="min-h-[60vh] flex items-center justify-center">
@@ -177,34 +246,71 @@ const Panier = () => {
                 <div className="p-6 rounded-2xl bg-card border border-border space-y-4">
                   <h2 className="text-title mb-4">Adresse de livraison</h2>
                   <div className="grid md:grid-cols-2 gap-4">
-                    <Input placeholder="Prénom" />
-                    <Input placeholder="Nom" />
+                    <Input 
+                      placeholder="Prénom" 
+                      value={shippingInfo.firstName}
+                      onChange={(e) => setShippingInfo(prev => ({ ...prev, firstName: e.target.value }))}
+                    />
+                    <Input 
+                      placeholder="Nom" 
+                      value={shippingInfo.lastName}
+                      onChange={(e) => setShippingInfo(prev => ({ ...prev, lastName: e.target.value }))}
+                    />
                   </div>
-                  <Input placeholder="Adresse" />
+                  <Input 
+                    placeholder="Email" 
+                    type="email"
+                    value={shippingInfo.email}
+                    onChange={(e) => setShippingInfo(prev => ({ ...prev, email: e.target.value }))}
+                  />
+                  <Input 
+                    placeholder="Adresse" 
+                    value={shippingInfo.address}
+                    onChange={(e) => setShippingInfo(prev => ({ ...prev, address: e.target.value }))}
+                  />
                   <div className="grid md:grid-cols-3 gap-4">
-                    <Input placeholder="Code postal" />
-                    <Input placeholder="Ville" className="md:col-span-2" />
+                    <Input 
+                      placeholder="Code postal" 
+                      value={shippingInfo.postalCode}
+                      onChange={(e) => setShippingInfo(prev => ({ ...prev, postalCode: e.target.value }))}
+                    />
+                    <Input 
+                      placeholder="Ville" 
+                      className="md:col-span-2" 
+                      value={shippingInfo.city}
+                      onChange={(e) => setShippingInfo(prev => ({ ...prev, city: e.target.value }))}
+                    />
                   </div>
-                  <Input placeholder="Pays" />
+                  <Input 
+                    placeholder="Pays" 
+                    value={shippingInfo.country}
+                    onChange={(e) => setShippingInfo(prev => ({ ...prev, country: e.target.value }))}
+                  />
                 </div>
               )}
 
               {step === 3 && (
                 <PaymentForm
                   isProcessing={isProcessing}
-                  onSubmit={(data) => {
+                  onSubmit={async (data) => {
                     setIsProcessing(true);
+                    
                     // Simulate payment processing
-                    setTimeout(() => {
-                      setIsProcessing(false);
-                      const newOrderNumber = `CMD-${Date.now().toString(36).toUpperCase()}`;
-                      setOrderNumber(newOrderNumber);
-                      setStep(4);
-                      toast({
-                        title: "Paiement accepté",
-                        description: "Votre commande a été confirmée avec succès.",
-                      });
-                    }, 2000);
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    const newOrderNumber = `CMD-${Date.now().toString(36).toUpperCase()}`;
+                    setOrderNumber(newOrderNumber);
+                    
+                    // Send confirmation email
+                    await sendOrderConfirmationEmail(newOrderNumber, data);
+                    
+                    setIsProcessing(false);
+                    setStep(4);
+                    
+                    toast({
+                      title: "Paiement accepté",
+                      description: "Votre commande a été confirmée. Un email de confirmation a été envoyé.",
+                    });
                   }}
                 />
               )}
