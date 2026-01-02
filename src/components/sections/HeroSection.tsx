@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import logo from "@/assets/logo.png";
 
 export function HeroSection() {
   return (
@@ -13,8 +14,18 @@ export function HeroSection() {
 
       <div className="container-wide relative z-10 text-center">
         <div className="max-w-4xl mx-auto space-y-8">
+          {/* Logo with animation */}
+          <div className="flex justify-center animate-scale-in">
+            <img 
+              src={logo} 
+              alt="APPLE Demo" 
+              className="h-20 md:h-28 w-auto opacity-0 animate-fade-in"
+              style={{ animationDelay: "100ms", animationFillMode: "forwards" }}
+            />
+          </div>
+
           {/* Badge */}
-          <div className="animate-fade-up">
+          <div className="animate-fade-up" style={{ animationDelay: "200ms" }}>
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-sm font-medium">
               <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
               Nouveauté 2024
@@ -22,21 +33,21 @@ export function HeroSection() {
           </div>
 
           {/* Title */}
-          <h1 className="text-display animate-fade-up delay-100">
+          <h1 className="text-display animate-fade-up" style={{ animationDelay: "300ms" }}>
             L'innovation
             <br />
             <span className="text-primary">à votre service</span>
           </h1>
 
           {/* Subtitle */}
-          <p className="text-body-large max-w-2xl mx-auto animate-fade-up delay-200">
+          <p className="text-body-large max-w-2xl mx-auto animate-fade-up" style={{ animationDelay: "400ms" }}>
             Découvrez une nouvelle génération de produits conçus pour
             transformer votre quotidien. Performance, élégance et innovation
             réunies.
           </p>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-up delay-300">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-up" style={{ animationDelay: "500ms" }}>
             <Button variant="hero" size="xl" asChild>
               <Link to="/produits">
                 Découvrir
@@ -49,7 +60,7 @@ export function HeroSection() {
           </div>
 
           {/* Stats Preview */}
-          <div className="grid grid-cols-3 gap-8 pt-12 max-w-xl mx-auto animate-fade-up delay-400">
+          <div className="grid grid-cols-3 gap-8 pt-12 max-w-xl mx-auto animate-fade-up" style={{ animationDelay: "600ms" }}>
             <div className="text-center">
               <div className="text-3xl font-semibold">50+</div>
               <div className="text-sm text-muted-foreground">Produits</div>
