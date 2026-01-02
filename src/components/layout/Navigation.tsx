@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Search, ShoppingBag, User, Menu, X, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import logo from "@/assets/logo.png";
 
 const navItems = [
   {
@@ -84,9 +85,10 @@ export function Navigation() {
             {/* Logo */}
             <Link
               to="/"
-              className="text-xl font-semibold tracking-tight hover:opacity-70 transition-opacity"
+              className="flex items-center gap-2 hover:opacity-70 transition-opacity"
             >
-              APPLE Demo
+              <img src={logo} alt="APPLE Demo" className="h-5 w-auto" />
+              <span className="text-lg font-semibold tracking-tight hidden sm:inline">Demo</span>
             </Link>
 
             {/* Desktop Navigation */}
