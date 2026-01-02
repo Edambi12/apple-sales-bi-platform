@@ -8,7 +8,7 @@ import { Lock, BarChart3, TrendingUp, Headphones, Settings } from "lucide-react"
 const Analytics = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [accessCode, setAccessCode] = useState("");
-  const [embedUrl, setEmbedUrl] = useState("COLLE_ICI_TON_URL_EMBED_POWERBI");
+  const [embedUrl, setEmbedUrl] = useState("https://app.powerbi.com/view?r=eyJrIjoiNjNjZTE3ZmUtNzAzNC00ODA3LWJkMGMtYWQ4MTNlYTUzNGE1IiwidCI6ImRiZDY2NjRkLTRlYjktNDZlYi05OWQ4LTVjNDNiYTE1M2M2MSIsImMiOjl9");
   const [showSettings, setShowSettings] = useState(false);
 
   const handleAccessSubmit = (e: React.FormEvent) => {
