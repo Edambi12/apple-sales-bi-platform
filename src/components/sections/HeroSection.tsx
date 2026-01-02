@@ -3,13 +3,123 @@ import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
 
+function FloatingShape({ 
+  className, 
+  delay = 0, 
+  duration = 20 
+}: { 
+  className: string; 
+  delay?: number; 
+  duration?: number;
+}) {
+  return (
+    <div 
+      className={`absolute ${className}`}
+      style={{
+        animation: `float ${duration}s ease-in-out infinite`,
+        animationDelay: `${delay}s`
+      }}
+    />
+  );
+}
+
 export function HeroSection() {
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-gradient-to-b from-background to-secondary/20">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+      {/* Floating Geometric Shapes */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Large shapes */}
+        <FloatingShape 
+          className="top-[10%] left-[5%] w-32 h-32 border-2 border-primary/20 rounded-full"
+          delay={0}
+          duration={25}
+        />
+        <FloatingShape 
+          className="top-[20%] right-[10%] w-24 h-24 bg-gradient-to-br from-primary/10 to-accent/10 rotate-45"
+          delay={2}
+          duration={20}
+        />
+        <FloatingShape 
+          className="bottom-[30%] left-[8%] w-16 h-16 border border-accent/30 rotate-12"
+          delay={4}
+          duration={22}
+        />
+        <FloatingShape 
+          className="top-[40%] right-[5%] w-20 h-20 border-2 border-primary/15 rounded-full"
+          delay={1}
+          duration={28}
+        />
+        <FloatingShape 
+          className="bottom-[20%] right-[15%] w-28 h-28 bg-gradient-to-tr from-accent/5 to-primary/10 rounded-3xl rotate-45"
+          delay={3}
+          duration={24}
+        />
+        
+        {/* Small particles */}
+        <FloatingShape 
+          className="top-[15%] left-[20%] w-4 h-4 bg-primary/30 rounded-full blur-[1px]"
+          delay={0}
+          duration={15}
+        />
+        <FloatingShape 
+          className="top-[60%] left-[15%] w-3 h-3 bg-accent/40 rounded-full"
+          delay={2}
+          duration={18}
+        />
+        <FloatingShape 
+          className="top-[25%] right-[25%] w-5 h-5 bg-primary/20 rotate-45"
+          delay={1}
+          duration={16}
+        />
+        <FloatingShape 
+          className="bottom-[40%] right-[8%] w-4 h-4 bg-accent/30 rounded-full blur-[1px]"
+          delay={3}
+          duration={20}
+        />
+        <FloatingShape 
+          className="top-[70%] left-[30%] w-3 h-3 border border-primary/40 rotate-45"
+          delay={4}
+          duration={17}
+        />
+        <FloatingShape 
+          className="top-[35%] left-[40%] w-2 h-2 bg-primary/50 rounded-full"
+          delay={1.5}
+          duration={14}
+        />
+        <FloatingShape 
+          className="bottom-[25%] left-[45%] w-6 h-6 border border-accent/25 rounded-full"
+          delay={2.5}
+          duration={22}
+        />
+        <FloatingShape 
+          className="top-[50%] right-[30%] w-4 h-4 bg-gradient-to-br from-primary/30 to-accent/20 rounded-full"
+          delay={0.5}
+          duration={19}
+        />
+        
+        {/* Hexagons using clip-path */}
+        <div 
+          className="absolute top-[45%] left-[12%] w-12 h-12 bg-primary/10"
+          style={{
+            clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
+            animation: 'float 23s ease-in-out infinite',
+            animationDelay: '1s'
+          }}
+        />
+        <div 
+          className="absolute bottom-[35%] right-[20%] w-8 h-8 border border-accent/30"
+          style={{
+            clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
+            animation: 'float 21s ease-in-out infinite',
+            animationDelay: '3s'
+          }}
+        />
+      </div>
+
+      {/* Background Glow */}
+      <div className="absolute inset-0 opacity-40">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/15 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
       </div>
 
       <div className="container-wide relative z-10 text-center">
