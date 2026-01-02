@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Minus, Plus, Trash2, ArrowRight, ShoppingBag } from "lucide-react";
 import { Link } from "react-router-dom";
+import { PaymentForm } from "@/components/checkout/PaymentForm";
+import { OrderConfirmation } from "@/components/checkout/OrderConfirmation";
+import { toast } from "@/hooks/use-toast";
 
 interface CartItem {
   id: number;
@@ -33,6 +36,8 @@ const initialCart: CartItem[] = [
 const Panier = () => {
   const [cart, setCart] = useState<CartItem[]>(initialCart);
   const [step, setStep] = useState(1);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [orderNumber, setOrderNumber] = useState("");
 
   const updateQuantity = (id: number, delta: number) => {
     setCart((prev) =>
@@ -83,33 +88,35 @@ const Panier = () => {
           <h1 className="text-headline mb-8">Votre panier</h1>
 
           {/* Progress Steps */}
-          <div className="flex items-center gap-4 mb-12 max-w-md">
-            {["Panier", "Livraison", "Paiement"].map((label, index) => (
-              <div key={label} className="flex-1 flex items-center gap-2">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    step > index
-                      ? "bg-primary text-primary-foreground"
-                      : step === index + 1
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-muted-foreground"
-                  }`}
-                >
-                  {index + 1}
+          {step <= 3 && (
+            <div className="flex items-center gap-4 mb-12 max-w-md">
+              {["Panier", "Livraison", "Paiement"].map((label, index) => (
+                <div key={label} className="flex-1 flex items-center gap-2">
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                      step > index
+                        ? "bg-primary text-primary-foreground"
+                        : step === index + 1
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary text-muted-foreground"
+                    }`}
+                  >
+                    {index + 1}
+                  </div>
+                  <span
+                    className={`text-sm ${
+                      step >= index + 1 ? "text-foreground" : "text-muted-foreground"
+                    }`}
+                  >
+                    {label}
+                  </span>
+                  {index < 2 && (
+                    <div className="flex-1 h-px bg-border ml-2" />
+                  )}
                 </div>
-                <span
-                  className={`text-sm ${
-                    step >= index + 1 ? "text-foreground" : "text-muted-foreground"
-                  }`}
-                >
-                  {label}
-                </span>
-                {index < 2 && (
-                  <div className="flex-1 h-px bg-border ml-2" />
-                )}
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
           <div className="grid lg:grid-cols-3 gap-12">
             {/* Cart Items */}
@@ -183,76 +190,76 @@ const Panier = () => {
               )}
 
               {step === 3 && (
-                <div className="p-6 rounded-2xl bg-card border border-border space-y-4">
-                  <h2 className="text-title mb-4">Paiement</h2>
-                  <Input placeholder="Numéro de carte" />
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input placeholder="MM/AA" />
-                    <Input placeholder="CVV" />
-                  </div>
-                  <Input placeholder="Nom sur la carte" />
-                  <p className="text-xs text-muted-foreground">
-                    Mode démo — Aucun paiement réel n'est effectué
-                  </p>
-                </div>
+                <PaymentForm
+                  isProcessing={isProcessing}
+                  onSubmit={(data) => {
+                    setIsProcessing(true);
+                    // Simulate payment processing
+                    setTimeout(() => {
+                      setIsProcessing(false);
+                      const newOrderNumber = `CMD-${Date.now().toString(36).toUpperCase()}`;
+                      setOrderNumber(newOrderNumber);
+                      setStep(4);
+                      toast({
+                        title: "Paiement accepté",
+                        description: "Votre commande a été confirmée avec succès.",
+                      });
+                    }, 2000);
+                  }}
+                />
+              )}
+
+              {step === 4 && (
+                <OrderConfirmation orderNumber={orderNumber} total={total} />
               )}
             </div>
 
             {/* Order Summary */}
-            <div className="lg:sticky lg:top-32 h-fit">
-              <div className="p-6 rounded-2xl bg-card border border-border">
-                <h2 className="font-semibold text-lg mb-4">Récapitulatif</h2>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Sous-total</span>
-                    <span>{subtotal.toLocaleString("fr-FR")} €</span>
+            {step <= 3 && (
+              <div className="lg:sticky lg:top-32 h-fit">
+                <div className="p-6 rounded-2xl bg-card border border-border">
+                  <h2 className="font-semibold text-lg mb-4">Récapitulatif</h2>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Sous-total</span>
+                      <span>{subtotal.toLocaleString("fr-FR")} €</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Livraison</span>
+                      <span>
+                        {shipping === 0 ? "Gratuite" : `${shipping.toFixed(2)} €`}
+                      </span>
+                    </div>
+                    <div className="border-t border-border pt-3 flex justify-between text-lg font-semibold">
+                      <span>Total</span>
+                      <span>{total.toLocaleString("fr-FR")} €</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Livraison</span>
-                    <span>
-                      {shipping === 0 ? "Gratuite" : `${shipping.toFixed(2)} €`}
-                    </span>
-                  </div>
-                  <div className="border-t border-border pt-3 flex justify-between text-lg font-semibold">
-                    <span>Total</span>
-                    <span>{total.toLocaleString("fr-FR")} €</span>
-                  </div>
-                </div>
 
-                <div className="mt-6 space-y-3">
-                  {step < 3 ? (
-                    <Button
-                      variant="hero"
-                      className="w-full"
-                      onClick={() => setStep(step + 1)}
-                    >
-                      Continuer
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="hero"
-                      className="w-full"
-                      onClick={() => {
-                        setCart([]);
-                        setStep(1);
-                      }}
-                    >
-                      Confirmer la commande
-                    </Button>
-                  )}
-                  {step > 1 && (
-                    <Button
-                      variant="ghost"
-                      className="w-full"
-                      onClick={() => setStep(step - 1)}
-                    >
-                      Retour
-                    </Button>
-                  )}
+                  <div className="mt-6 space-y-3">
+                    {step < 3 && (
+                      <Button
+                        variant="hero"
+                        className="w-full"
+                        onClick={() => setStep(step + 1)}
+                      >
+                        Continuer
+                        <ArrowRight className="w-4 h-4" />
+                      </Button>
+                    )}
+                    {step > 1 && (
+                      <Button
+                        variant="ghost"
+                        className="w-full"
+                        onClick={() => setStep(step - 1)}
+                      >
+                        Retour
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </section>
