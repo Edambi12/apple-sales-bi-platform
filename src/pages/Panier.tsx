@@ -94,6 +94,9 @@ const Panier = () => {
       const customerEmail = shippingInfo.email || "edamketata8@gmail.com";
 
       const { data, error } = await supabase.functions.invoke("send-order-confirmation", {
+        headers: {
+          "x-order-secret": import.meta.env.VITE_ORDER_EMAIL_SECRET || "",
+        },
         body: {
           orderNumber: newOrderNumber,
           customerName,
