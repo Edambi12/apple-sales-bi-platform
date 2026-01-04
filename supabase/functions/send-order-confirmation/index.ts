@@ -1,26 +1,44 @@
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const ORDER_EMAIL_SECRET = Deno.env.get("ORDER_EMAIL_SECRET");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-order-secret",
 };
 
-interface OrderConfirmationRequest {
-  orderNumber: string;
-  customerName: string;
-  customerEmail: string;
-  total: number;
-  items: Array<{
-    name: string;
-    quantity: number;
-    price: number;
-  }>;
-  shippingAddress: {
-    address: string;
-    city: string;
-    postalCode: string;
-    country: string;
-  };
+// Zod schema for input validation
+const orderItemSchema = z.object({
+  name: z.string().min(1).max(200),
+  quantity: z.number().int().positive(),
+  price: z.number().positive(),
+});
+
+const shippingAddressSchema = z.object({
+  address: z.string().min(1).max(200),
+  city: z.string().min(1).max(100),
+  postalCode: z.string().min(1).max(20),
+  country: z.string().min(1).max(100),
+});
+
+const orderConfirmationSchema = z.object({
+  orderNumber: z.string().regex(/^CMD-[A-Z0-9]+$/, "Format de numéro de commande invalide"),
+  customerName: z.string().min(1).max(100),
+  customerEmail: z.string().email("Email invalide"),
+  total: z.number().positive(),
+  items: z.array(orderItemSchema).min(1, "Au moins un article requis"),
+  shippingAddress: shippingAddressSchema,
+});
+
+// HTML escape function to prevent XSS
+function escapeHtml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 async function sendEmail(to: string[], subject: string, html: string) {
@@ -59,6 +77,37 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Validate shared secret for authentication
+    const requestSecret = req.headers.get("x-order-secret");
+    if (!ORDER_EMAIL_SECRET || requestSecret !== ORDER_EMAIL_SECRET) {
+      console.error("Invalid or missing order secret");
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    // Parse and validate input with Zod
+    const rawData = await req.json();
+    const validationResult = orderConfirmationSchema.safeParse(rawData);
+    
+    if (!validationResult.success) {
+      console.error("Validation error:", validationResult.error.errors);
+      return new Response(
+        JSON.stringify({ 
+          error: "Données invalides", 
+          details: validationResult.error.errors.map(e => e.message) 
+        }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
     const {
       orderNumber,
       customerName,
@@ -66,17 +115,24 @@ Deno.serve(async (req: Request): Promise<Response> => {
       total,
       items,
       shippingAddress,
-    }: OrderConfirmationRequest = await req.json();
+    } = validationResult.data;
 
     console.log(`Processing order confirmation for order: ${orderNumber}`);
-    console.log(`Customer: ${customerName}, Email: ${customerEmail}`);
 
-    // Generate items HTML
+    // Escape all user inputs for HTML
+    const safeCustomerName = escapeHtml(customerName);
+    const safeOrderNumber = escapeHtml(orderNumber);
+    const safeAddress = escapeHtml(shippingAddress.address);
+    const safeCity = escapeHtml(shippingAddress.city);
+    const safePostalCode = escapeHtml(shippingAddress.postalCode);
+    const safeCountry = escapeHtml(shippingAddress.country);
+
+    // Generate items HTML with escaped content
     const itemsHtml = items
       .map(
         (item) => `
         <tr>
-          <td style="padding: 12px; border-bottom: 1px solid #eee;">${item.name}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #eee;">${escapeHtml(item.name)}</td>
           <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
           <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">${(item.price * item.quantity).toLocaleString("fr-FR")} €</td>
         </tr>
@@ -97,13 +153,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
           <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; border-radius: 16px 16px 0 0; text-align: center;">
               <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Commande Confirmée ✓</h1>
-              <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">Merci pour votre achat, ${customerName}!</p>
+              <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">Merci pour votre achat, ${safeCustomerName}!</p>
             </div>
             
             <div style="background: #ffffff; padding: 40px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
               <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 30px;">
                 <p style="margin: 0; color: #666; font-size: 14px;">Numéro de commande</p>
-                <p style="margin: 5px 0 0 0; color: #333; font-size: 20px; font-weight: bold; font-family: monospace;">${orderNumber}</p>
+                <p style="margin: 5px 0 0 0; color: #333; font-size: 20px; font-weight: bold; font-family: monospace;">${safeOrderNumber}</p>
               </div>
 
               <h2 style="color: #333; font-size: 18px; margin-bottom: 15px;">Articles commandés</h2>
@@ -129,10 +185,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
               <h2 style="color: #333; font-size: 18px; margin-bottom: 15px;">Adresse de livraison</h2>
               <div style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 30px;">
                 <p style="margin: 0; color: #333; line-height: 1.6;">
-                  ${customerName}<br>
-                  ${shippingAddress.address}<br>
-                  ${shippingAddress.postalCode} ${shippingAddress.city}<br>
-                  ${shippingAddress.country}
+                  ${safeCustomerName}<br>
+                  ${safeAddress}<br>
+                  ${safePostalCode} ${safeCity}<br>
+                  ${safeCountry}
                 </p>
               </div>
 
@@ -154,7 +210,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    // Admin notification email
+    // Admin notification email with escaped content
     const adminEmailHtml = `
       <!DOCTYPE html>
       <html>
@@ -166,25 +222,25 @@ Deno.serve(async (req: Request): Promise<Response> => {
             <h1 style="color: #333; margin: 0 0 20px 0;">🎉 Nouvelle Commande!</h1>
             
             <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-              <p style="margin: 0; color: #2e7d32; font-weight: bold;">Commande #${orderNumber}</p>
+              <p style="margin: 0; color: #2e7d32; font-weight: bold;">Commande #${safeOrderNumber}</p>
             </div>
 
             <h3 style="color: #666; margin: 20px 0 10px 0;">Client</h3>
             <p style="margin: 0; color: #333;">
-              <strong>${customerName}</strong><br>
-              ${customerEmail}
+              <strong>${safeCustomerName}</strong><br>
+              ${escapeHtml(customerEmail)}
             </p>
 
             <h3 style="color: #666; margin: 20px 0 10px 0;">Articles</h3>
             <ul style="margin: 0; padding-left: 20px; color: #333;">
-              ${items.map((item) => `<li>${item.name} x${item.quantity} - ${(item.price * item.quantity).toLocaleString("fr-FR")} €</li>`).join("")}
+              ${items.map((item) => `<li>${escapeHtml(item.name)} x${item.quantity} - ${(item.price * item.quantity).toLocaleString("fr-FR")} €</li>`).join("")}
             </ul>
 
             <h3 style="color: #666; margin: 20px 0 10px 0;">Livraison</h3>
             <p style="margin: 0; color: #333;">
-              ${shippingAddress.address}<br>
-              ${shippingAddress.postalCode} ${shippingAddress.city}<br>
-              ${shippingAddress.country}
+              ${safeAddress}<br>
+              ${safePostalCode} ${safeCity}<br>
+              ${safeCountry}
             </p>
 
             <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin-top: 20px; text-align: center;">
@@ -201,7 +257,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     console.log("Sending confirmation email to customer...");
     const customerEmailResult = await sendEmail(
       [customerEmail],
-      `Confirmation de commande #${orderNumber}`,
+      `Confirmation de commande #${safeOrderNumber}`,
       customerEmailHtml
     );
 
@@ -209,7 +265,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     console.log("Sending notification email to admin...");
     const adminEmailResult = await sendEmail(
       ["edamketata8@gmail.com"],
-      `🛒 Nouvelle commande #${orderNumber}`,
+      `🛒 Nouvelle commande #${safeOrderNumber}`,
       adminEmailHtml
     );
 
@@ -228,7 +284,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error("Error in send-order-confirmation function:", errorMessage);
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: "Une erreur s'est produite" }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
