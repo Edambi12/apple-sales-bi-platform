@@ -193,8 +193,11 @@ uniform these results are; they describe this dataset only.
 | Page | Content |
 | --- | --- |
 | **Overview** | Sales value, units sold, claims per sale, completed claim share, value by country and by category, year slicer |
-| **Distribution** | Store count, year-over-year card, value by country and city, annual trend, store slicer |
+| **Distribution** ¹ | Store count, year-over-year card, value by country and city, annual trend, store slicer |
 | **SAV** (after-sales) | Claim count, claims by status and by category, claim level by country |
+
+¹ Spelled "Distrubition" in the currently published report; the correction is
+the first item of the update checklist.
 
 A review of the report is in
 [powerbi/improvement-report.md](powerbi/improvement-report.md), and the manual
