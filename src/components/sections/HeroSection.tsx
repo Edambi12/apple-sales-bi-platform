@@ -1,8 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Store } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import logo from "@/assets/logo.png";
 
 function FloatingShape({ 
   className, 
@@ -182,11 +181,9 @@ export function HeroSection() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
-            <img 
-              src={logo} 
-              alt="APPLE Demo" 
-              className="h-20 md:h-28 w-auto drop-shadow-lg"
-            />
+            <span className="flex h-20 w-20 md:h-24 md:w-24 items-center justify-center rounded-3xl bg-primary/10 text-primary">
+              <Store className="h-10 w-10 md:h-12 md:w-12" aria-hidden="true" />
+            </span>
           </motion.div>
 
           {/* Badge */}

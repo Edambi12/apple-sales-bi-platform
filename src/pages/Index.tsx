@@ -1,24 +1,29 @@
 import { Layout } from "@/components/layout/Layout";
-import { HeroSection } from "@/components/sections/HeroSection";
-import { ProductHighlights } from "@/components/sections/ProductHighlights";
-import { FeaturedProductsSection } from "@/components/sections/FeaturedProductsSection";
-import { ValueProposition } from "@/components/sections/ValueProposition";
-import { TestimonialsSection } from "@/components/sections/TestimonialsSection";
-import { KPISection } from "@/components/sections/KPISection";
-import { NewsletterSection } from "@/components/sections/NewsletterSection";
-import { CTASection } from "@/components/sections/CTASection";
+import { CaseStudyHero } from "@/components/case-study/sections/CaseStudyHero";
+import { ExecutiveSummary } from "@/components/case-study/sections/ExecutiveSummary";
+import { BusinessUnderstanding } from "@/components/case-study/sections/BusinessUnderstanding";
+import { DataUnderstanding } from "@/components/case-study/sections/DataUnderstanding";
+import { DataPreparation } from "@/components/case-study/sections/DataPreparation";
+import { DataArchitecture } from "@/components/case-study/sections/DataArchitecture";
+import { KpiAnalysis } from "@/components/case-study/sections/KpiAnalysis";
+import { BusinessInsights } from "@/components/case-study/sections/BusinessInsights";
+import { DashboardSection } from "@/components/case-study/sections/DashboardSection";
+import { ProjectDocumentation } from "@/components/case-study/sections/ProjectDocumentation";
 
+/** Home page: the Business Intelligence case study, top to bottom. */
 const Index = () => {
   return (
     <Layout>
-      <HeroSection />
-      <ProductHighlights />
-      <FeaturedProductsSection />
-      <ValueProposition />
-      <TestimonialsSection />
-      <KPISection />
-      <NewsletterSection />
-      <CTASection />
+      <CaseStudyHero />
+      <ExecutiveSummary />
+      <BusinessUnderstanding />
+      <DataUnderstanding />
+      <DataPreparation />
+      <DataArchitecture />
+      <KpiAnalysis />
+      <BusinessInsights />
+      <DashboardSection />
+      <ProjectDocumentation />
     </Layout>
   );
 };

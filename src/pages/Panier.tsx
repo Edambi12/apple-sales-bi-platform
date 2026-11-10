@@ -7,7 +7,6 @@ import { Link } from "react-router-dom";
 import { PaymentForm } from "@/components/checkout/PaymentForm";
 import { OrderConfirmation } from "@/components/checkout/OrderConfirmation";
 import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 
 interface CartItem {
   id: number;
@@ -93,6 +92,8 @@ const Panier = () => {
       
       const customerEmail = shippingInfo.email || "edamketata8@gmail.com";
 
+      // Loaded on demand so the cart still renders when Supabase is not configured.
+      const { supabase } = await import("@/integrations/supabase/client");
       const { data, error } = await supabase.functions.invoke("send-order-confirmation", {
         headers: {
           "x-order-secret": import.meta.env.VITE_ORDER_EMAIL_SECRET || "",

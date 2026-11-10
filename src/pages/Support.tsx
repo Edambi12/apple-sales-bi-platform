@@ -28,7 +28,7 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-  XCircle,
+  XCircle, type LucideIcon
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -67,7 +67,7 @@ const categories = [
   { icon: Headphones, label: "Accessoires", href: "/support/accessoires" },
 ];
 
-const claimStatuses: Record<string, { status: string; icon: any; color: string }> = {
+const claimStatuses: Record<string, { status: string; icon: LucideIcon; color: string }> = {
   "CLM-001": { status: "En cours de traitement", icon: Clock, color: "text-yellow-500" },
   "CLM-002": { status: "Complété", icon: CheckCircle, color: "text-green-500" },
   "CLM-003": { status: "En attente", icon: AlertCircle, color: "text-orange-500" },
@@ -79,7 +79,7 @@ const Support = () => {
   const [claimId, setClaimId] = useState("");
   const [claimResult, setClaimResult] = useState<{
     status: string;
-    icon: any;
+    icon: LucideIcon;
     color: string;
   } | null>(null);
 

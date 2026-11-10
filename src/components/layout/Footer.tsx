@@ -1,92 +1,80 @@
 import { Link } from "react-router-dom";
-import logo from "@/assets/logo.png";
+import { LINKS, PROJECT } from "@/config/links";
+import { ExternalLink } from "@/components/case-study/ExternalLink";
+import { BrandMark } from "./BrandMark";
 
-const footerLinks = {
-  "Acheter et découvrir": [
-    { label: "Boutique", href: "/boutiques" },
-    { label: "Smartphones", href: "/produits?category=smartphones" },
-    { label: "Ordinateurs", href: "/produits?category=ordinateurs" },
-    { label: "Tablettes", href: "/produits?category=tablettes" },
-    { label: "Accessoires", href: "/produits?category=accessoires" },
-  ],
-  Services: [
-    { label: "Support", href: "/support" },
-    { label: "SAV", href: "/support/sav" },
-    { label: "Garantie", href: "/support/garantie" },
-    { label: "Réparation", href: "/support/reparation" },
-  ],
-  Entreprise: [
-    { label: "À propos", href: "/entreprise" },
-    { label: "Carrières", href: "/carrieres" },
-    { label: "Newsroom", href: "/newsroom" },
-    { label: "Contact", href: "/contact" },
-  ],
-  "Valeurs APPLE Demo": [
-    { label: "Engagement qualité", href: "/entreprise#qualite" },
-    { label: "Innovation", href: "/entreprise#innovation" },
-    { label: "Durabilité", href: "/entreprise#durabilite" },
-    { label: "Confidentialité", href: "/confidentialite" },
-  ],
-};
+const CASE_STUDY = [
+  { label: "Executive summary", href: "/#summary" },
+  { label: "Data understanding", href: "/#data" },
+  { label: "Data model", href: "/#model" },
+  { label: "KPI analysis", href: "/#kpis" },
+  { label: "Business insights", href: "/#insights" },
+];
+
+const DEMO_STORE = [
+  { label: "Storefront home", href: "/demo-store" },
+  { label: "Products", href: "/produits" },
+  { label: "Stores", href: "/boutiques" },
+  { label: "Support", href: "/support" },
+];
+
+const linkClass = "text-sm text-muted-foreground hover:text-foreground transition-colors";
 
 export function Footer() {
   return (
     <footer className="bg-secondary/30 border-t border-border">
-      <div className="max-w-[1200px] mx-auto px-6 py-12">
-        {/* Links Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-          {Object.entries(footerLinks).map(([category, links]) => (
-            <div key={category}>
-              <h3 className="text-xs font-semibold text-foreground mb-4">
-                {category}
-              </h3>
-              <ul className="space-y-2">
-                {links.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      to={link.href}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+          <div className="col-span-2 md:col-span-1">
+            <div className="flex items-center gap-2">
+              <BrandMark />
+              <span className="text-sm font-semibold">{PROJECT.title}</span>
             </div>
-          ))}
+            <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+              {PROJECT.subtitle}. A portfolio project by {PROJECT.author}.
+            </p>
+          </div>
+
+          <nav aria-label="Case study">
+            <h2 className="text-xs font-semibold text-foreground mb-4">Case study</h2>
+            <ul className="space-y-2">
+              {CASE_STUDY.map((l) => (
+                <li key={l.href}>
+                  <Link to={l.href} className={linkClass}>{l.label}</Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <nav aria-label="Project links">
+            <h2 className="text-xs font-semibold text-foreground mb-4">Project links</h2>
+            <ul className="space-y-2">
+              <li><Link to="/analytics" className={linkClass}>Live dashboard</Link></li>
+              <li><ExternalLink href={LINKS.powerBiReport} className="text-sm">Power BI report</ExternalLink></li>
+              <li><ExternalLink href={LINKS.kaggleDataset} className="text-sm">Kaggle dataset</ExternalLink></li>
+              <li><ExternalLink href={LINKS.github} className="text-sm">GitHub repository</ExternalLink></li>
+            </ul>
+          </nav>
+
+          <nav aria-label="Demo store">
+            <h2 className="text-xs font-semibold text-foreground mb-4">Demo store (fictional)</h2>
+            <ul className="space-y-2">
+              {DEMO_STORE.map((l) => (
+                <li key={l.href}>
+                  <Link to={l.href} className={linkClass}>{l.label}</Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
         </div>
 
-        {/* Bottom Section */}
-        <div className="border-t border-border pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <img src={logo} alt="APPLE Demo" className="h-4 w-auto opacity-50" />
-              Copyright © 2024 APPLE Demo. Tous droits réservés.
-            </div>
-            <p className="text-xs text-muted-foreground text-center">
-              Projet de démonstration — Aucune affiliation avec Apple Inc.
-            </p>
-            <div className="flex gap-4">
-              <Link
-                to="/confidentialite"
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Confidentialité
-              </Link>
-              <Link
-                to="/conditions"
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Conditions d'utilisation
-              </Link>
-              <Link
-                to="/mentions-legales"
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Mentions légales
-              </Link>
-            </div>
-          </div>
+        <div className="border-t border-border pt-6 text-xs text-muted-foreground leading-relaxed space-y-1">
+          <p>{PROJECT.disclaimer}</p>
+          <p>
+            Apple and its product names are trademarks of Apple Inc. Sales value
+            is a list-price × quantity proxy in dataset units, not revenue in any
+            currency.
+          </p>
         </div>
       </div>
     </footer>

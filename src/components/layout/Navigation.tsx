@@ -1,331 +1,237 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Search, ShoppingBag, User, Menu, X, ChevronDown } from "lucide-react";
+import { BarChart3, ChevronDown, Menu, ShoppingBag, User, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
-import logo from "@/assets/logo.png";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { LINKS } from "@/config/links";
+import { BrandMark } from "./BrandMark";
 
-const navItems = [
-  {
-    label: "Produits",
-    href: "/produits",
-    megaMenu: [
-      {
-        title: "Smartphones",
-        items: [
-          { label: "Pro Max", href: "/produits/pro-max" },
-          { label: "Pro", href: "/produits/pro" },
-          { label: "Standard", href: "/produits/standard" },
-        ],
-      },
-      {
-        title: "Ordinateurs",
-        items: [
-          { label: "Laptop Pro", href: "/produits/laptop-pro" },
-          { label: "Laptop Air", href: "/produits/laptop-air" },
-          { label: "Desktop", href: "/produits/desktop" },
-        ],
-      },
-      {
-        title: "Tablettes",
-        items: [
-          { label: "Tablet Pro", href: "/produits/tablet-pro" },
-          { label: "Tablet", href: "/produits/tablet" },
-          { label: "Tablet Mini", href: "/produits/tablet-mini" },
-        ],
-      },
-      {
-        title: "Accessoires",
-        items: [
-          { label: "Écouteurs", href: "/produits/ecouteurs" },
-          { label: "Montres", href: "/produits/montres" },
-          { label: "Chargeurs", href: "/produits/chargeurs" },
-        ],
-      },
-    ],
-  },
+const CASE_STUDY_LINKS = [
+  { label: "Summary", href: "/#summary" },
+  { label: "Data", href: "/#data" },
+  { label: "Preparation", href: "/#preparation" },
+  { label: "Model", href: "/#model" },
+  { label: "KPIs", href: "/#kpis" },
+  { label: "Insights", href: "/#insights" },
+  { label: "Docs", href: "/#docs" },
+] as const;
+
+/** Original Lovable storefront demo, kept as a secondary area of the app. */
+const STORE_LINKS = [
+  { label: "Accueil boutique", href: "/demo-store" },
+  { label: "Produits", href: "/produits" },
   { label: "Boutiques", href: "/boutiques" },
   { label: "Support", href: "/support" },
   { label: "Entreprise", href: "/entreprise" },
   { label: "Newsroom", href: "/newsroom" },
   { label: "Carrières", href: "/carrieres" },
-  { label: "Analytics", href: "/analytics" },
-];
+  { label: "Panier", href: "/panier" },
+  { label: "Compte", href: "/compte" },
+] as const;
+
+const STORE_PATHS = STORE_LINKS.map((l) => l.href);
 
 export function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
   const location = useLocation();
+  const inStore = STORE_PATHS.some((p) => location.pathname.startsWith(p));
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    window.addEventListener("scroll", handleScroll);
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
-    setActiveMegaMenu(null);
   }, [location]);
 
-  // Lock body scroll when mobile menu is open
   useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+    document.body.style.overflow = isMobileMenuOpen ? "hidden" : "";
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     };
   }, [isMobileMenuOpen]);
 
   return (
     <>
-      <motion.nav
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-2 focus:z-[60] focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:text-primary-foreground"
+      >
+        Skip to content
+      </a>
+      <header
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
+          "fixed top-0 left-0 right-0 z-50 transition-colors duration-300",
           isScrolled
-            ? "bg-background/70 backdrop-blur-2xl border-b border-border/30 shadow-sm"
-            : "bg-background/90 backdrop-blur-xl"
+            ? "bg-background/80 backdrop-blur-2xl border-b border-border/50"
+            : "bg-background/90 backdrop-blur-xl",
         )}
       >
-        <div className="max-w-[1200px] mx-auto px-6">
-          <div className="flex items-center justify-between h-12">
-            {/* Logo */}
+        <nav aria-label="Main" className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center justify-between h-12 gap-4">
             <Link
               to="/"
-              className="flex items-center gap-2 hover:opacity-70 transition-all duration-300 group"
+              className="flex items-center gap-2 rounded-sm hover:opacity-80 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <img 
-                src={logo} 
-                alt="APPLE Demo" 
-                className="h-5 w-auto transition-transform duration-300 group-hover:scale-110" 
-              />
-              <span className="text-lg font-semibold tracking-tight hidden sm:inline bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground group-hover:from-primary group-hover:to-accent transition-all duration-300">
-                Demo
+              <BrandMark />
+              <span className="text-sm font-semibold tracking-tight whitespace-nowrap">
+                Retail Sales Analytics
               </span>
             </Link>
 
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-8">
-              {navItems.map((item, index) => (
-                <motion.div
-                  key={item.label}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 + 0.2 }}
-                  className="relative"
-                  onMouseEnter={() =>
-                    item.megaMenu && setActiveMegaMenu(item.label)
-                  }
-                  onMouseLeave={() => setActiveMegaMenu(null)}
-                >
+            <ul className="hidden lg:flex items-center gap-6">
+              {CASE_STUDY_LINKS.map((item) => (
+                <li key={item.href}>
                   <Link
                     to={item.href}
                     className={cn(
-                      "nav-link flex items-center gap-1 py-2",
-                      location.pathname.startsWith(item.href) && "nav-active text-primary"
+                      "nav-link py-2",
+                      location.pathname === "/" && `/${location.hash}` === item.href && "nav-active",
                     )}
                   >
                     {item.label}
-                    {item.megaMenu && (
-                      <ChevronDown
-                        className={cn(
-                          "w-3 h-3 transition-transform duration-300",
-                          activeMegaMenu === item.label && "rotate-180"
-                        )}
-                      />
-                    )}
                   </Link>
-                </motion.div>
+                </li>
               ))}
-            </div>
+              <li>
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    className={cn(
+                      "nav-link flex items-center gap-1 py-2 after:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm",
+                      inStore && "nav-active",
+                    )}
+                  >
+                    Demo store
+                    <ChevronDown className="h-3 w-3" aria-hidden="true" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                      Fictional storefront UI demo (in French)
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {STORE_LINKS.map((item) => (
+                      <DropdownMenuItem key={item.href} asChild>
+                        <Link to={item.href}>{item.label}</Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </li>
+            </ul>
 
-            {/* Right Icons */}
-            <div className="flex items-center gap-2">
-              <motion.button 
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className="p-2 hover:bg-secondary rounded-full transition-colors duration-300"
-              >
-                <Search className="w-4 h-4" />
-              </motion.button>
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                <Link
-                  to="/panier"
-                  className="p-2 hover:bg-secondary rounded-full transition-colors duration-300 relative block"
-                >
-                  <ShoppingBag className="w-4 h-4" />
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-semibold rounded-full flex items-center justify-center">
-                    2
-                  </span>
+            <div className="flex items-center gap-1.5">
+              {inStore && (
+                <>
+                  <Link
+                    to="/panier"
+                    aria-label="Panier"
+                    className="p-2 hover:bg-secondary rounded-full transition-colors"
+                  >
+                    <ShoppingBag className="w-4 h-4" aria-hidden="true" />
+                  </Link>
+                  <Link
+                    to="/compte"
+                    aria-label="Compte"
+                    className="p-2 hover:bg-secondary rounded-full transition-colors"
+                  >
+                    <User className="w-4 h-4" aria-hidden="true" />
+                  </Link>
+                </>
+              )}
+              <Button asChild size="sm" className="hidden sm:inline-flex h-8">
+                <Link to="/analytics">
+                  <BarChart3 aria-hidden="true" />
+                  Live dashboard
                 </Link>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                <Link
-                  to="/compte"
-                  className="p-2 hover:bg-secondary rounded-full transition-colors duration-300 block"
-                >
-                  <User className="w-4 h-4" />
-                </Link>
-              </motion.div>
-              <motion.button
-                whileTap={{ scale: 0.95 }}
-                className="lg:hidden p-2 hover:bg-secondary rounded-full transition-colors duration-300"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              </Button>
+              <button
+                type="button"
+                className="lg:hidden p-2 hover:bg-secondary rounded-full transition-colors"
+                aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="mobile-menu"
+                onClick={() => setIsMobileMenuOpen((open) => !open)}
               >
-                <AnimatePresence mode="wait">
-                  {isMobileMenuOpen ? (
-                    <motion.div
-                      key="close"
-                      initial={{ rotate: -90, opacity: 0 }}
-                      animate={{ rotate: 0, opacity: 1 }}
-                      exit={{ rotate: 90, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <X className="w-4 h-4" />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="menu"
-                      initial={{ rotate: 90, opacity: 0 }}
-                      animate={{ rotate: 0, opacity: 1 }}
-                      exit={{ rotate: -90, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Menu className="w-4 h-4" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.button>
+                {isMobileMenuOpen ? (
+                  <X className="w-4 h-4" aria-hidden="true" />
+                ) : (
+                  <Menu className="w-4 h-4" aria-hidden="true" />
+                )}
+              </button>
             </div>
           </div>
+        </nav>
+      </header>
+
+      {isMobileMenuOpen && (
+        <div
+          id="mobile-menu"
+          className="fixed inset-0 z-40 bg-background pt-14 lg:hidden overflow-y-auto animate-fade-in"
+        >
+          <nav aria-label="Mobile" className="p-6 space-y-8">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-3">
+                Case study
+              </p>
+              <ul className="space-y-1">
+                {CASE_STUDY_LINKS.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      to={item.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="block py-2 text-xl font-semibold hover:text-primary transition-colors"
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex flex-col gap-3">
+              <Button asChild>
+                <Link to="/analytics">
+                  <BarChart3 aria-hidden="true" />
+                  Live dashboard
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <a href={LINKS.powerBiReport} target="_blank" rel="noopener noreferrer">
+                  Open in Power BI
+                </a>
+              </Button>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                Demo store (fictional, in French)
+              </p>
+              <ul className="grid grid-cols-2 gap-x-4">
+                {STORE_LINKS.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      to={item.href}
+                      className="block py-2 text-base text-foreground/80 hover:text-foreground transition-colors"
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </nav>
         </div>
-
-        {/* Mega Menu */}
-        <AnimatePresence>
-          {activeMegaMenu && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="absolute top-full left-0 right-0 bg-background/95 backdrop-blur-2xl border-b border-border/50 shadow-lg"
-              onMouseEnter={() => setActiveMegaMenu(activeMegaMenu)}
-              onMouseLeave={() => setActiveMegaMenu(null)}
-            >
-              <div className="max-w-[1200px] mx-auto px-6 py-8">
-                <div className="grid grid-cols-4 gap-8">
-                  {navItems
-                    .find((item) => item.label === activeMegaMenu)
-                    ?.megaMenu?.map((category, catIndex) => (
-                      <motion.div 
-                        key={category.title}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: catIndex * 0.05 }}
-                      >
-                        <h3 className="text-xs font-semibold text-primary uppercase tracking-wider mb-4">
-                          {category.title}
-                        </h3>
-                        <ul className="space-y-3">
-                          {category.items.map((subItem, subIndex) => (
-                            <motion.li 
-                              key={subItem.label}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: catIndex * 0.05 + subIndex * 0.03 }}
-                            >
-                              <Link
-                                to={subItem.href}
-                                className="text-foreground/80 hover:text-primary transition-colors duration-300 flex items-center gap-2 group"
-                              >
-                                <span className="w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-3" />
-                                {subItem.label}
-                              </Link>
-                            </motion.li>
-                          ))}
-                        </ul>
-                      </motion.div>
-                    ))}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.nav>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-40 bg-background/98 backdrop-blur-xl pt-14 lg:hidden overflow-y-auto"
-          >
-            <motion.div 
-              className="p-6 space-y-6"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-            >
-              {navItems.map((item, index) => (
-                <motion.div 
-                  key={item.label}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 + 0.15 }}
-                >
-                  <Link
-                    to={item.href}
-                    className={cn(
-                      "text-2xl font-semibold block py-2 transition-colors duration-300",
-                      location.pathname.startsWith(item.href) 
-                        ? "text-primary" 
-                        : "text-foreground hover:text-primary"
-                    )}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
-                  {item.megaMenu && (
-                    <div className="pl-4 mt-2 space-y-2 border-l-2 border-primary/20">
-                      {item.megaMenu.map((category) => (
-                        <div key={category.title} className="mb-4">
-                          <span className="text-sm text-primary uppercase tracking-wider font-medium">
-                            {category.title}
-                          </span>
-                          <div className="mt-2 space-y-2">
-                            {category.items.map((subItem) => (
-                              <Link
-                                key={subItem.label}
-                                to={subItem.href}
-                                className="block text-lg text-foreground/70 hover:text-foreground transition-colors duration-300"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                              >
-                                {subItem.label}
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </motion.div>
-              ))}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      )}
     </>
   );
 }

@@ -17,7 +17,7 @@ import {
   Wrench,
   Package,
   GraduationCap,
-  Search,
+  Search, type LucideIcon
 } from "lucide-react";
 
 const stores = [
@@ -92,7 +92,7 @@ const stores = [
 const countries = ["Tous", "France", "Belgique", "Suisse", "Canada"];
 const cities = ["Toutes", "Paris", "Lyon", "Bruxelles", "Genève", "Montréal"];
 
-const serviceIcons: Record<string, any> = {
+const serviceIcons: Record<string, LucideIcon> = {
   SAV: Wrench,
   Pickup: Package,
   Ateliers: GraduationCap,

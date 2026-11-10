@@ -1,65 +1,57 @@
+import { Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
-import { BarChart3 } from "lucide-react";
+import { PowerBIEmbed } from "@/components/case-study/PowerBIEmbed";
+import { ExternalLink } from "@/components/case-study/ExternalLink";
+import { LINKS, PROJECT } from "@/config/links";
 
 const Analytics = () => {
-  const embedUrl = "https://app.powerbi.com/view?r=eyJrIjoiNjNjZTE3ZmUtNzAzNC00ODA3LWJkMGMtYWQ4MTNlYTUzNGE1IiwidCI6ImRiZDY2NjRkLTRlYjktNDZlYi05OWQ4LTVjNDNiYTE1M2M2MSIsImMiOjl9";
-
   return (
     <Layout>
-      {/* Header */}
-      <section className="section-padding bg-secondary/30">
+      <section className="bg-secondary/40 py-10 md:py-14">
         <div className="container-wide">
-          <h1 className="text-headline mb-2">Portail Analytics</h1>
-          <p className="text-muted-foreground">
-            Tableaux de bord Business Intelligence
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline underline-offset-4"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" /> Back to the case study
+          </Link>
+          <h1 className="mt-4 text-3xl md:text-4xl font-semibold tracking-tight">
+            Live Power BI dashboard
+          </h1>
+          <p className="mt-2 max-w-2xl text-muted-foreground">
+            The published report for {PROJECT.title}: three pages covering the
+            overview, the geographical distribution and after-sales (SAV).
           </p>
         </div>
       </section>
 
-      {/* Dashboard */}
-      <section className="py-8">
+      <section className="py-8 md:py-10">
         <div className="container-wide">
-          <PowerBIEmbed url={embedUrl} title="Projet APPLE" />
+          <PowerBIEmbed />
 
-          {/* Disclaimer */}
-          <div className="mt-8 p-4 bg-secondary/50 rounded-xl text-center">
-            <p className="text-sm text-muted-foreground">
-              ⚠️ Rapport BI de démonstration — Dataset fictif
-            </p>
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            <div className="rounded-xl border border-border p-5 text-sm text-muted-foreground leading-relaxed">
+              <h2 className="font-semibold text-foreground mb-1.5">Reading the figures</h2>
+              Sales value ("CA") is list price × quantity in dataset units — the
+              source states no currency. The 2024 growth card compares a partial
+              year with full 2023; on a like-for-like basis (1 Jan – 12 Nov) the
+              change is +0.77%. See the{" "}
+              <Link to="/#kpis" className="font-medium text-primary hover:underline underline-offset-4">
+                KPI definitions
+              </Link>
+              .
+            </div>
+            <div className="rounded-xl border border-border p-5 text-sm text-muted-foreground leading-relaxed">
+              <h2 className="font-semibold text-foreground mb-1.5">About the data</h2>
+              {PROJECT.disclaimer}{" "}
+              <ExternalLink href={LINKS.kaggleDataset}>Dataset source on Kaggle</ExternalLink>
+            </div>
           </div>
         </div>
       </section>
     </Layout>
   );
 };
-
-function PowerBIEmbed({ url, title }: { url: string; title: string }) {
-  const isValidUrl = url.startsWith("http");
-
-  if (!isValidUrl) {
-    return (
-      <div className="w-full h-[80vh] bg-secondary/30 rounded-2xl flex items-center justify-center">
-        <div className="text-center">
-          <BarChart3 className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-xl font-semibold mb-2">{title}</h3>
-          <p className="text-muted-foreground max-w-md">
-            URL Power BI non configurée.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="w-full h-[80vh] rounded-2xl overflow-hidden border border-border">
-      <iframe
-        src={url}
-        title={title}
-        className="w-full h-full"
-        allowFullScreen
-      />
-    </div>
-  );
-}
 
 export default Analytics;
