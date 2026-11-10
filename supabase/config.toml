@@ -1,1 +1,7 @@
 project_id = "ahpnqmfyuzwrswgiriww"
+
+# The checkout email function must be called with the project's JWT
+# (the publishable key sent by the Supabase client). Requests without it are
+# rejected by the platform before the function runs.
+[functions.send-order-confirmation]
+verify_jwt = true

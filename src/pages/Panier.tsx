@@ -26,6 +26,8 @@ interface ShippingInfo {
   email: string;
 }
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const initialCart: CartItem[] = [
   {
     id: 1,
@@ -78,26 +80,29 @@ const Panier = () => {
   const shipping = subtotal > 500 ? 0 : 9.99;
   const total = subtotal + shipping;
 
+  /**
+   * Asks the server-side function to email the order confirmation. The browser
+   * holds no email credential or shared secret: the function validates the
+   * request itself. Returns whether a confirmation email was sent.
+   */
   const sendOrderConfirmationEmail = async (newOrderNumber: string, paymentData: {
     cardName?: string;
     addressLine1?: string;
     city?: string;
     postalCode?: string;
     country?: string;
-  }) => {
+  }): Promise<boolean> => {
+    const customerEmail = shippingInfo.email.trim();
+    if (!EMAIL_PATTERN.test(customerEmail)) return false;
+
     try {
-      const customerName = shippingInfo.firstName && shippingInfo.lastName 
+      const customerName = shippingInfo.firstName && shippingInfo.lastName
         ? `${shippingInfo.firstName} ${shippingInfo.lastName}`
         : paymentData.cardName || "Client";
-      
-      const customerEmail = shippingInfo.email || "edamketata8@gmail.com";
 
       // Loaded on demand so the cart still renders when Supabase is not configured.
       const { supabase } = await import("@/integrations/supabase/client");
-      const { data, error } = await supabase.functions.invoke("send-order-confirmation", {
-        headers: {
-          "x-order-secret": import.meta.env.VITE_ORDER_EMAIL_SECRET || "",
-        },
+      const { error } = await supabase.functions.invoke("send-order-confirmation", {
         body: {
           orderNumber: newOrderNumber,
           customerName,
@@ -118,17 +123,13 @@ const Panier = () => {
       });
 
       if (error) {
-        console.error("Error sending email:", error);
-        toast({
-          title: "Avertissement",
-          description: "La commande est confirmée mais l'email n'a pas pu être envoyé.",
-          variant: "destructive",
-        });
-      } else {
-        console.log("Email sent successfully:", data);
+        console.error("Order confirmation email could not be sent");
+        return false;
       }
+      return true;
     } catch (err) {
-      console.error("Error calling email function:", err);
+      console.error("Order confirmation email could not be sent");
+      return false;
     }
   };
 
@@ -191,7 +192,7 @@ const Panier = () => {
             </div>
           )}
 
-          <div className="grid lg:grid-cols-3 gap-12">
+          <div className="grid lg:grid-cols-3 gap-12 [&>*]:min-w-0">
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-4">
               {step === 1 &&
@@ -305,15 +306,17 @@ const Panier = () => {
                     const newOrderNumber = `CMD-${Date.now().toString(36).toUpperCase()}`;
                     setOrderNumber(newOrderNumber);
                     
-                    // Send confirmation email
-                    await sendOrderConfirmationEmail(newOrderNumber, data);
+                    // Send confirmation email (only when a valid address was provided)
+                    const emailSent = await sendOrderConfirmationEmail(newOrderNumber, data);
                     
                     setIsProcessing(false);
                     setStep(4);
                     
                     toast({
                       title: "Paiement accepté",
-                      description: "Votre commande a été confirmée. Un email de confirmation a été envoyé.",
+                      description: emailSent
+                        ? "Votre commande a été confirmée. Un email de confirmation a été envoyé."
+                        : "Votre commande a été confirmée. Aucun email de confirmation n'a été envoyé.",
                     });
                   }}
                 />

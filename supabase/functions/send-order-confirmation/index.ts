@@ -1,18 +1,75 @@
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const ORDER_EMAIL_SECRET = Deno.env.get("ORDER_EMAIL_SECRET");
+// Server-side configuration. Set these as Edge Function secrets; none of them
+// is ever sent to, or read from, the browser.
+//   ORDER_NOTIFICATION_EMAIL  inbox that receives the shop-side notification (optional)
+//   ORDER_FROM_EMAIL          verified sender, e.g. "Shop <orders@your-domain.com>" (optional)
+//   ALLOWED_ORIGINS           comma-separated list of site origins allowed to call this function (optional)
+const ORDER_NOTIFICATION_EMAIL = Deno.env.get("ORDER_NOTIFICATION_EMAIL")?.trim() || null;
+const ORDER_FROM_EMAIL = Deno.env.get("ORDER_FROM_EMAIL")?.trim() || "Boutique <onboarding@resend.dev>";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-order-secret",
-};
+const DEFAULT_ALLOWED_ORIGINS = [
+  "https://apple-demo.lovable.app",
+  "https://id-preview--2225b5d3-8551-4aec-a888-3080c0264613.lovable.app",
+  "https://2225b5d3-8551-4aec-a888-3080c0264613.lovableproject.com",
+  "http://localhost:8080",
+];
+const ALLOWED_ORIGINS = (Deno.env.get("ALLOWED_ORIGINS") ?? "")
+  .split(",")
+  .map((o) => o.trim().replace(/\/$/, ""))
+  .filter(Boolean);
+const allowedOrigins = new Set(ALLOWED_ORIGINS.length ? ALLOWED_ORIGINS : DEFAULT_ALLOWED_ORIGINS);
+
+/**
+ * CORS headers for an allowed origin. The Origin check stops other websites
+ * from using this endpoint from a visitor's browser. It is not authentication:
+ * a non-browser client can forge the header, which is why the rate limit and
+ * the strict payload validation below also apply.
+ */
+function corsHeadersFor(origin: string | null): Record<string, string> {
+  const headers: Record<string, string> = {
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    Vary: "Origin",
+  };
+  if (origin && allowedOrigins.has(origin)) headers["Access-Control-Allow-Origin"] = origin;
+  return headers;
+}
+
+// Best-effort rate limit, kept in the memory of the running function instance.
+// It resets when the instance is recycled; use a database-backed counter if a
+// hard guarantee is ever needed.
+const RATE_WINDOW_MS = 10 * 60 * 1000;
+const MAX_PER_CLIENT = 3;
+const MAX_GLOBAL = 20;
+const recentByClient = new Map<string, number[]>();
+let recentGlobal: number[] = [];
+
+function isRateLimited(clientId: string): boolean {
+  const now = Date.now();
+  const fresh = (stamps: number[]) => stamps.filter((t) => now - t < RATE_WINDOW_MS);
+  recentGlobal = fresh(recentGlobal);
+  const mine = fresh(recentByClient.get(clientId) ?? []);
+  if (mine.length >= MAX_PER_CLIENT || recentGlobal.length >= MAX_GLOBAL) {
+    recentByClient.set(clientId, mine);
+    return true;
+  }
+  mine.push(now);
+  recentGlobal.push(now);
+  recentByClient.set(clientId, mine);
+  if (recentByClient.size > 500) recentByClient.clear();
+  return false;
+}
+
+const FREE_SHIPPING_THRESHOLD = 500;
+const SHIPPING_FEE = 9.99;
 
 // Zod schema for input validation
 const orderItemSchema = z.object({
   name: z.string().min(1).max(200),
-  quantity: z.number().int().positive(),
-  price: z.number().positive(),
+  quantity: z.number().int().positive().max(99),
+  price: z.number().positive().max(100000),
 });
 
 const shippingAddressSchema = z.object({
@@ -25,9 +82,9 @@ const shippingAddressSchema = z.object({
 const orderConfirmationSchema = z.object({
   orderNumber: z.string().regex(/^CMD-[A-Z0-9]+$/, "Format de numéro de commande invalide"),
   customerName: z.string().min(1).max(100),
-  customerEmail: z.string().email("Email invalide"),
+  customerEmail: z.string().email("Email invalide").max(254),
   total: z.number().positive(),
-  items: z.array(orderItemSchema).min(1, "Au moins un article requis"),
+  items: z.array(orderItemSchema).min(1, "Au moins un article requis").max(20),
   shippingAddress: shippingAddressSchema,
 });
 
@@ -42,7 +99,6 @@ function escapeHtml(unsafe: string): string {
 }
 
 async function sendEmail(to: string[], subject: string, html: string) {
-  console.log(`Sending email to: ${to.join(", ")}`);
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -50,7 +106,7 @@ async function sendEmail(to: string[], subject: string, html: string) {
       Authorization: `Bearer ${RESEND_API_KEY}`,
     },
     body: JSON.stringify({
-      from: "Boutique <onboarding@resend.dev>",
+      from: ORDER_FROM_EMAIL,
       to,
       subject,
       html,
@@ -59,17 +115,21 @@ async function sendEmail(to: string[], subject: string, html: string) {
 
   if (!res.ok) {
     const error = await res.text();
-    console.error("Email send error:", error);
-    throw new Error(`Failed to send email: ${error}`);
+    console.error("Email send error:", res.status, error);
+    throw new Error(`Failed to send email (status ${res.status})`);
   }
 
-  const result = await res.json();
-  console.log("Email sent successfully:", result);
-  return result;
+  await res.body?.cancel();
 }
 
 Deno.serve(async (req: Request): Promise<Response> => {
-  console.log("Received request to send order confirmation email");
+  const origin = req.headers.get("origin")?.replace(/\/$/, "") ?? null;
+  const corsHeaders = corsHeadersFor(origin);
+  const json = (status: number, body: unknown) =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
 
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -77,17 +137,23 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Validate shared secret for authentication
-    const requestSecret = req.headers.get("x-order-secret");
-    if (!ORDER_EMAIL_SECRET || requestSecret !== ORDER_EMAIL_SECRET) {
-      console.error("Invalid or missing order secret");
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
+    if (req.method !== "POST") return json(405, { error: "Method not allowed" });
+
+    // Only the project's own pages may call this endpoint from a browser.
+    if (!origin || !allowedOrigins.has(origin)) {
+      console.error("Rejected request from a non-allowed origin");
+      return json(403, { error: "Forbidden" });
+    }
+
+    if (!RESEND_API_KEY) {
+      console.error("RESEND_API_KEY is not configured");
+      return json(503, { error: "Service indisponible" });
+    }
+
+    const clientId = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    if (isRateLimited(clientId)) {
+      console.error("Rate limit reached");
+      return json(429, { error: "Trop de demandes, réessayez plus tard" });
     }
 
     // Parse and validate input with Zod
@@ -96,16 +162,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
     
     if (!validationResult.success) {
       console.error("Validation error:", validationResult.error.errors);
-      return new Response(
-        JSON.stringify({ 
-          error: "Données invalides", 
-          details: validationResult.error.errors.map(e => e.message) 
-        }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
+      return json(400, {
+        error: "Données invalides",
+        details: validationResult.error.errors.map((e) => e.message),
+      });
     }
 
     const {
@@ -116,6 +176,14 @@ Deno.serve(async (req: Request): Promise<Response> => {
       items,
       shippingAddress,
     } = validationResult.data;
+
+    // Never trust a client-side total: recompute it from the order lines.
+    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const expectedTotal = subtotal + (subtotal > FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE);
+    if (Math.abs(expectedTotal - total) > 0.01) {
+      console.error("Order total does not match its lines");
+      return json(400, { error: "Données invalides" });
+    }
 
     console.log(`Processing order confirmation for order: ${orderNumber}`);
 
@@ -253,42 +321,38 @@ Deno.serve(async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    // Send email to customer
-    console.log("Sending confirmation email to customer...");
-    const customerEmailResult = await sendEmail(
-      [customerEmail],
-      `Confirmation de commande #${safeOrderNumber}`,
-      customerEmailHtml
-    );
+    // Send email to customer. With Resend's test sender (onboarding@resend.dev)
+    // delivery only works to the Resend account owner's own address; set
+    // ORDER_FROM_EMAIL to a verified domain sender to reach any customer.
+    let customerEmailSent = true;
+    try {
+      await sendEmail(
+        [customerEmail],
+        `Confirmation de commande #${safeOrderNumber}`,
+        customerEmailHtml
+      );
+    } catch (_customerEmailError) {
+      customerEmailSent = false;
+    }
 
-    // Send notification to admin
-    console.log("Sending notification email to admin...");
-    const adminEmailResult = await sendEmail(
-      ["edamketata8@gmail.com"],
-      `🛒 Nouvelle commande #${safeOrderNumber}`,
-      adminEmailHtml
-    );
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        customerEmail: customerEmailResult,
-        adminEmail: adminEmailResult,
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+    // Notify the shop inbox, when one is configured server-side.
+    if (ORDER_NOTIFICATION_EMAIL) {
+      try {
+        await sendEmail(
+          [ORDER_NOTIFICATION_EMAIL],
+          `🛒 Nouvelle commande #${safeOrderNumber}`,
+          adminEmailHtml
+        );
+      } catch (_notificationError) {
+        console.error("Shop notification could not be sent");
       }
-    );
+    }
+
+    if (!customerEmailSent) return json(502, { error: "L'email n'a pas pu être envoyé" });
+    return json(200, { success: true });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error("Error in send-order-confirmation function:", errorMessage);
-    return new Response(
-      JSON.stringify({ error: "Une erreur s'est produite" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    return json(500, { error: "Une erreur s'est produite" });
   }
 });
