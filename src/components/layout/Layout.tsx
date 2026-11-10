@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Navigation } from "./Navigation";
 import { Footer } from "./Footer";
+import { RetailDemoNotice } from "./RetailDemoNotice";
 
 interface LayoutProps {
   children: ReactNode;
@@ -11,6 +12,7 @@ export function Layout({ children }: LayoutProps) {
     <div className="min-h-screen flex flex-col">
       <Navigation />
       <main id="main" tabIndex={-1} className="flex-1 pt-12 focus:outline-none">
+        <RetailDemoNotice />
         {children}
       </main>
       <Footer />

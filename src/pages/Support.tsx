@@ -61,10 +61,10 @@ const faqItems = [
 ];
 
 const categories = [
-  { icon: Smartphone, label: "Smartphones", href: "/support/smartphones" },
-  { icon: Laptop, label: "Ordinateurs", href: "/support/ordinateurs" },
-  { icon: Tablet, label: "Tablettes", href: "/support/tablettes" },
-  { icon: Headphones, label: "Accessoires", href: "/support/accessoires" },
+  { icon: Smartphone, label: "Smartphones", href: "/produits" },
+  { icon: Laptop, label: "Ordinateurs", href: "/produits" },
+  { icon: Tablet, label: "Tablettes", href: "/produits" },
+  { icon: Headphones, label: "Accessoires", href: "/produits" },
 ];
 
 const claimStatuses: Record<string, { status: string; icon: LucideIcon; color: string }> = {
@@ -152,7 +152,7 @@ const Support = () => {
               {/* Quick Links */}
               <div className="mt-12 grid sm:grid-cols-2 gap-4">
                 <Link
-                  to="/support/guides"
+                  to="/produits"
                   className="flex items-center gap-4 p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-colors"
                 >
                   <FileText className="w-8 h-8 text-primary" />
@@ -164,7 +164,7 @@ const Support = () => {
                   </div>
                 </Link>
                 <Link
-                  to="/contact"
+                  to="/boutiques"
                   className="flex items-center gap-4 p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-colors"
                 >
                   <MessageCircle className="w-8 h-8 text-primary" />

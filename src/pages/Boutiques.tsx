@@ -172,7 +172,7 @@ const Boutiques = () => {
       {/* Main Content */}
       <section className="section-padding">
         <div className="container-wide">
-          <div className="grid lg:grid-cols-2 gap-8">
+          <div className="grid lg:grid-cols-2 gap-8 [&>*]:min-w-0">
             {/* Map Placeholder */}
             <div className="relative h-[500px] lg:h-auto lg:sticky lg:top-32 rounded-2xl overflow-hidden bg-secondary/30">
               <div className="absolute inset-0 flex items-center justify-center">

@@ -12,10 +12,10 @@ const CASE_STUDY = [
 ];
 
 const DEMO_STORE = [
-  { label: "Storefront home", href: "/demo-store" },
   { label: "Products", href: "/produits" },
   { label: "Stores", href: "/boutiques" },
-  { label: "Support", href: "/support" },
+  { label: "Support and warranty", href: "/support" },
+  { label: "Cart", href: "/panier" },
 ];
 
 const linkClass = "text-sm text-muted-foreground hover:text-foreground transition-colors";
@@ -56,8 +56,8 @@ export function Footer() {
             </ul>
           </nav>
 
-          <nav aria-label="Demo store">
-            <h2 className="text-xs font-semibold text-foreground mb-4">Demo store (fictional)</h2>
+          <nav aria-label="Retail demo">
+            <h2 className="text-xs font-semibold text-foreground mb-4">Retail demo (fictional)</h2>
             <ul className="space-y-2">
               {DEMO_STORE.map((l) => (
                 <li key={l.href}>

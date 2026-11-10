@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { BarChart3, ChevronDown, Menu, ShoppingBag, User, X } from "lucide-react";
+import { BarChart3, ChevronDown, Menu, ShoppingBag, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,17 +24,12 @@ const CASE_STUDY_LINKS = [
   { label: "Docs", href: "/#docs" },
 ] as const;
 
-/** Original Lovable storefront demo, kept as a secondary area of the app. */
+/** Retail demo pages: fictional products, stores, support and checkout. */
 const STORE_LINKS = [
-  { label: "Accueil boutique", href: "/demo-store" },
   { label: "Produits", href: "/produits" },
   { label: "Boutiques", href: "/boutiques" },
   { label: "Support", href: "/support" },
-  { label: "Entreprise", href: "/entreprise" },
-  { label: "Newsroom", href: "/newsroom" },
-  { label: "Carrières", href: "/carrieres" },
   { label: "Panier", href: "/panier" },
-  { label: "Compte", href: "/compte" },
 ] as const;
 
 const STORE_PATHS = STORE_LINKS.map((l) => l.href);
@@ -113,12 +108,12 @@ export function Navigation() {
                       inStore && "nav-active",
                     )}
                   >
-                    Demo store
+                    Retail demo
                     <ChevronDown className="h-3 w-3" aria-hidden="true" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
-                      Fictional storefront UI demo (in French)
+                      Fictional sample pages (in French)
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {STORE_LINKS.map((item) => (
@@ -133,22 +128,13 @@ export function Navigation() {
 
             <div className="flex items-center gap-1.5">
               {inStore && (
-                <>
-                  <Link
-                    to="/panier"
-                    aria-label="Panier"
-                    className="p-2 hover:bg-secondary rounded-full transition-colors"
-                  >
-                    <ShoppingBag className="w-4 h-4" aria-hidden="true" />
-                  </Link>
-                  <Link
-                    to="/compte"
-                    aria-label="Compte"
-                    className="p-2 hover:bg-secondary rounded-full transition-colors"
-                  >
-                    <User className="w-4 h-4" aria-hidden="true" />
-                  </Link>
-                </>
+                <Link
+                  to="/panier"
+                  aria-label="Panier"
+                  className="p-2 hover:bg-secondary rounded-full transition-colors"
+                >
+                  <ShoppingBag className="w-4 h-4" aria-hidden="true" />
+                </Link>
               )}
               <Button asChild size="sm" className="hidden sm:inline-flex h-8">
                 <Link to="/analytics">
@@ -214,7 +200,7 @@ export function Navigation() {
             </div>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                Demo store (fictional, in French)
+                Retail demo (fictional, in French)
               </p>
               <ul className="grid grid-cols-2 gap-x-4">
                 {STORE_LINKS.map((item) => (
