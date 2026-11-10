@@ -1,0 +1,75 @@
+// DAX measures extracted verbatim from projet APPLE.pbix (10 measures).
+// Names are kept in French, as authored. English descriptions were added as comments.
+// Nothing in this file was rewritten; proposed changes live in recommended-measures.dax.
+
+// Home table: category
+// Warranty claim count (duplicate of [nombre de réclamation])
+category[Nombre de réclamations] = COUNT(warranty[claim_id])
+
+// Home table: sales
+// Estimated Sales Value (list price x quantity, dataset units)
+sales[CA global] =
+SUMX (
+    sales,
+    sales[quantity] * RELATED ( products[Price] )
+)
+
+// Home table: sales
+// Product sales value (expression not recovered by the extraction tool - check in Power BI Desktop)
+sales[CA produit (mesure)] = /* expression not recovered */
+
+// Home table: sales
+// 2024 vs 2023 sales value change. NOTE: compares partial 2024 with full 2023 (see improvement-report.md)
+sales[TC CA 2024 vs 2023 (%)] =
+VAR CA_2024 =
+    CALCULATE ( [CA global], sales[Année] = 2024 )
+VAR CA_2023 =
+    CALCULATE ( [CA global], sales[Année] = 2023 )
+RETURN
+    DIVIDE ( CA_2024 - CA_2023, CA_2023, 0 )
+
+// Home table: sales
+// Claims per sale line
+sales[Taux de réclamation] =
+DIVIDE(
+    COUNTROWS(warranty),
+    COUNTROWS(sales),
+    0
+)
+
+// Home table: stores
+// Store count
+stores[nombre de store] = COUNT(stores[Store_ID])
+
+// Home table: warranty
+// Completed warranty claims share
+warranty[% SAV completed] =
+DIVIDE(
+    CALCULATE(
+        COUNTROWS(warranty),
+        warranty[repair_status] = "Completed"
+    ),
+    COUNTROWS(warranty),
+    0
+)
+
+// Home table: warranty
+// Average claim age in days, relative to TODAY(). NOTE: not a repair duration (see improvement-report.md)
+warranty[Délai moyen depuis réclamation (jours)] =
+AVERAGEX (
+    warranty,
+    DATEDIFF ( warranty[claim_date], TODAY(), DAY )
+)
+
+// Home table: warranty
+// Claim count, same period last year (not used in any visual)
+warranty[Nb Réclamations LY] =
+CALCULATE(
+    [nombre de réclamation],
+    SAMEPERIODLASTYEAR('warranty'[claim_date])
+)
+
+// Home table: warranty
+// Warranty claim count
+warranty[nombre de réclamation] = COUNT(warranty[claim_id])
+

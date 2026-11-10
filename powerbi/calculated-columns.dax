@@ -1,0 +1,55 @@
+// Calculated columns extracted verbatim from projet APPLE.pbix (7 user-defined columns).
+// Columns of Power BI's automatic date tables (LocalDateTable_*) are omitted.
+
+sales[Mois] = FORMAT ( sales[sale_date], "MMMM" )
+
+sales[Année] = YEAR ( sales[sale_date] )
+
+sales[CA de chaque produit] = sales[quantity] * RELATED ( products[Price] )
+
+stores[CA de chaque country] =
+CALCULATE(
+    SUM(sales[CA de chaque produit]),
+    ALLEXCEPT(stores, stores[Country])
+)
+
+category[Nombre de réclamation de chaque catégorie] =
+CALCULATE(
+    COUNT(warranty[claim_id]),
+    FILTER(
+        warranty,
+        warranty[sale_id] IN
+            SELECTCOLUMNS(
+                FILTER(
+                    sales,
+                    sales[product_id] IN
+                        SELECTCOLUMNS(
+                            FILTER(
+                                products,
+                                products[Category_ID] = category[category_id]
+                            ),
+                            "pid", products[Product_ID]
+                        )
+                ),
+                "sid", sales[sale_id]
+            )
+    )
+)
+
+stores[Nb Réclamations (par Country)] =
+CALCULATE(
+    DISTINCTCOUNT(warranty[claim_id]),
+    ALLEXCEPT(stores, stores[Country])
+)
+
+stores[level] =
+VAR x = stores[Nb Réclamations (par Country)]
+RETURN
+SWITCH(
+    TRUE(),
+    x >= 340 && x <= 782, "Low",
+    x >= 783 && x <= 1624, "Medium",
+    x >= 1625, "High",
+    BLANK()
+)
+

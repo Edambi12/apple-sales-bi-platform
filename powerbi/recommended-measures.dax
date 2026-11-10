@@ -1,0 +1,67 @@
+// PROPOSED measures - NOT part of the published report.
+// These are recommendations from the model review (see improvement-report.md).
+// They assume a dedicated calendar table named 'Date' related to sales[sale_date],
+// and English measure names. Expected results were checked against the dataset.
+
+// --- Base measures -----------------------------------------------------------
+
+Estimated Sales Value =
+SUMX ( sales, sales[quantity] * RELATED ( products[Price] ) )      // 6,166,293,030
+
+Units Sold =
+SUM ( sales[quantity] )                                             // 5,721,344
+
+Transactions =
+DISTINCTCOUNT ( sales[sale_id] )                                    // 1,040,200
+
+Average Units per Sale =
+DIVIDE ( [Units Sold], [Transactions] )                             // 5.50
+
+Warranty Claims =
+COUNTROWS ( warranty )                                              // 30,000
+
+Completed Claims Share =
+DIVIDE (
+    CALCULATE ( [Warranty Claims], warranty[repair_status] = "Completed" ),
+    [Warranty Claims]
+)                                                                   // 24.89%
+
+Open Claims Share =
+DIVIDE (
+    CALCULATE ( [Warranty Claims], warranty[repair_status] IN { "Pending", "In Progress" } ),
+    [Warranty Claims]
+)                                                                   // 50.59%
+
+// --- Like-for-like year-over-year --------------------------------------------
+// Replaces [TC CA 2024 vs 2023 (%)], which compares partial 2024 with full 2023.
+// Limits both years to the same calendar window (up to the last sale date).
+
+Sales Value YTD =
+VAR LastSaleDate = CALCULATE ( MAX ( sales[sale_date] ), ALL ( sales ) )
+VAR CurrentYear  = YEAR ( LastSaleDate )
+RETURN
+    CALCULATE (
+        [Estimated Sales Value],
+        'Date'[Date] >= DATE ( CurrentYear, 1, 1 ),
+        'Date'[Date] <= LastSaleDate
+    )                                                               // 1,101,457,659
+
+Sales Value YTD Previous Year =
+VAR LastSaleDate = CALCULATE ( MAX ( sales[sale_date] ), ALL ( sales ) )
+VAR PreviousYear = YEAR ( LastSaleDate ) - 1
+RETURN
+    CALCULATE (
+        [Estimated Sales Value],
+        'Date'[Date] >= DATE ( PreviousYear, 1, 1 ),
+        'Date'[Date] <= DATE ( PreviousYear, MONTH ( LastSaleDate ), DAY ( LastSaleDate ) )
+    )                                                               // 1,093,003,974
+
+Sales Value YoY % (Comparable) =
+DIVIDE ( [Sales Value YTD] - [Sales Value YTD Previous Year], [Sales Value YTD Previous Year] )
+                                                                    // +0.77%
+
+// --- Replacements for static calculated columns -------------------------------
+// stores[CA de chaque country] and category[Nombre de réclamation de chaque catégorie]
+// are computed at refresh time and ignore slicers. As measures, the same numbers
+// respond to filters: put stores[Country] or category[category_name] on the visual
+// and use [Estimated Sales Value] or [Warranty Claims] directly.
