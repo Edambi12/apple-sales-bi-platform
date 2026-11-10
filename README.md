@@ -81,8 +81,11 @@ Source: <https://www.kaggle.com/datasets/amangarg08/apple-retail-sales-dataset>
 - **Warranty claim period:** 1 January 2024 – 12 November 2024
 - **Geography:** 75 stores, 47 cities, 19 countries
 
+- **Licence:** MIT, as displayed on the Kaggle page
+- **Nature:** synthetic — the publisher states it "is not based on real Apple Inc. data"
+
 All figures in this repository were recomputed from the data loaded in the
-Power BI model. The raw files are not redistributed here; see
+Power BI model. The raw files are not stored here; see
 [Security and licensing](#security-and-licensing).
 
 More in [docs/data-understanding.md](docs/data-understanding.md) and
@@ -179,8 +182,8 @@ report: [powerbi/measures.dax](powerbi/measures.dax).
 - **Claims follow sales volume:** Accessories (4,650) and Smartphones (4,434)
   have the most claims.
 
-The uniformity of these results points to synthetic data; they describe this
-dataset only.
+The dataset is synthetic (stated on its Kaggle page), which explains how
+uniform these results are; they describe this dataset only.
 
 ## Dashboard overview
 
@@ -193,8 +196,10 @@ dataset only.
 | **Distribution** | Store count, year-over-year card, value by country and city, annual trend, store slicer |
 | **SAV** (after-sales) | Claim count, claims by status and by category, claim level by country |
 
-A review of the report with prioritised improvements is in
-[powerbi/improvement-report.md](powerbi/improvement-report.md). Two cards in the
+A review of the report is in
+[powerbi/improvement-report.md](powerbi/improvement-report.md), and the manual
+changes still to apply are in
+[powerbi/pbix-update-checklist.md](powerbi/pbix-update-checklist.md). Two cards in the
 published report differ from the definitions used here (the 2024 growth card
 and the claim-delay card); the report explains why.
 
@@ -266,7 +271,7 @@ The app runs at <http://localhost:8080>.
 | `npm run preview` | Serve the production build |
 | `npm run lint` | ESLint |
 
-Environment variables are needed only for the optional demo-store checkout.
+Environment variables are needed only for the optional retail demo checkout.
 Copy `.env.example` to `.env` and fill in your own values; the case study works
 without them.
 
@@ -288,6 +293,7 @@ To rebuild the Power BI report from the source files, follow
 │   ├── architecture.md
 │   ├── data-quality.md
 │   ├── limitations.md
+│   ├── security.md
 │   ├── assets/                  README banner
 │   ├── screenshots/             Application and Power BI screenshots
 │   └── archive/original-slides/ First planning slides (superseded)
@@ -298,6 +304,7 @@ To rebuild the Power BI report from the source files, follow
 │   ├── power-query.pq           Power Query (M) queries
 │   ├── model-documentation.md
 │   ├── improvement-report.md    Review and recommendations
+│   ├── pbix-update-checklist.md Manual changes to apply in Power BI Desktop
 │   └── recommended-measures.dax Proposed measures (not yet in the report)
 ├── src/
 │   ├── config/links.ts          Public URLs
@@ -305,13 +312,14 @@ To rebuild the Power BI report from the source files, follow
 │   ├── components/case-study/   Case-study sections and charts
 │   ├── components/layout/       Navigation, footer
 │   ├── pages/                   Routes
-│   └── …                        Demo storefront and UI primitives
+│   └── …                        Retail demo pages and UI primitives
 └── supabase/                    Edge function used by the demo checkout
 ```
 
-The application also keeps a fictional storefront demo (in French) from its
-first version, reachable under *Demo store*. It is a user-interface sample and
-is unrelated to the dataset.
+The application also keeps four retail demo pages (in French) under *Retail
+demo*: products, stores, support and warranty, and a cart. Their content is
+fictional sample data, labelled as such on every page, and is unrelated to the
+dataset.
 
 ## Data limitations
 
@@ -320,7 +328,7 @@ is unrelated to the dataset.
 - Warranty claims cover 2024 only; sales cover 2020–2024.
 - 2024 is a partial year (ends 12 November).
 - 9% of claims are dated before their linked sale.
-- The data is very likely synthetic.
+- The data is synthetic, as stated by its publisher.
 
 More in [docs/limitations.md](docs/limitations.md).
 
@@ -328,10 +336,14 @@ More in [docs/limitations.md](docs/limitations.md).
 
 - `.env` files are excluded from version control; `.env.example` holds
   placeholders only. A `.env` file was tracked in earlier commits. It contained
-  Supabase *publishable* (anon) client values, which are designed to be exposed
-  in a browser, but rotating the key in Supabase remains good practice.
-- No dataset files and no `.pbix` are stored in the repository. The dataset's
-  licence must be confirmed on its Kaggle page before redistributing them.
+  only Supabase *publishable* (anon) client values, which are designed to be
+  exposed in a browser.
+- **No secret in the browser.** The demo checkout calls a Supabase Edge
+  Function that holds the email API key and recipient settings server-side.
+  The database has no public tables. Details: [docs/security.md](docs/security.md).
+- **Dataset licence: MIT**, as displayed on the Kaggle page (checked
+  10 November 2026). The raw CSV files are not stored here; download them from
+  Kaggle. See [docs/limitations.md](docs/limitations.md#licensing).
 - The repository does not yet declare a licence for its own code and
   documentation.
 

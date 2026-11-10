@@ -5,8 +5,10 @@
 - **Dataset:** Apple Retail Sales Dataset, published on Kaggle by user `amangarg08`
 - **URL:** <https://www.kaggle.com/datasets/amangarg08/apple-retail-sales-dataset>
 - **Format:** five CSV files
-- **Licence:** to be confirmed on the Kaggle page before any redistribution of
-  the files — see [limitations](limitations.md#licensing)
+- **Licence:** MIT, as displayed on the Kaggle page (checked 10 November 2026) —
+  see [limitations](limitations.md#licensing)
+- **Publisher's note:** the page states the dataset "is not based on real Apple
+  Inc. data" and is synthetic, "created using Python and LLM-generated insights"
 
 All counts below were measured on the data loaded in the Power BI model.
 
@@ -46,8 +48,8 @@ row. Details and the remaining consistency issues are in the
 
 ## Nature of the data
 
-Several properties indicate the dataset is synthetically generated rather than
-real transactions: quantities are uniformly distributed, value per store is
+The publisher states that the dataset is synthetic. The data confirms it:
+quantities are uniformly distributed, value per store is
 almost identical across all 75 stores, the four claim statuses are evenly split,
 and 47% of sales predate the listed launch date of the product sold. Findings
 therefore describe this dataset only.

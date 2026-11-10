@@ -369,7 +369,7 @@ export const LIMITATIONS = [
   "No repair completion date: repair-processing time cannot be measured.",
   "Warranty claims cover 2024 only, while sales cover 2020–2024.",
   "2024 is a partial year (ends 12 Nov): full-year comparisons are misleading.",
-  "Uniform quantities and date inconsistencies indicate the data is very likely synthetic.",
+  "The dataset is synthetic, as stated by its publisher: it is not real Apple Inc. data.",
 ] as const;
 
 const compact = new Intl.NumberFormat("en-US", {

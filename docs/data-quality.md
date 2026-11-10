@@ -43,7 +43,10 @@ None of these rows were deleted or corrected. Altering them would hide a
 property of the source; disclosing them and keeping the affected fields out of
 the KPIs is the safer choice.
 
-## Signs of synthetic data
+## Synthetic data
+
+The Kaggle page states that the dataset is synthetic. These measurements show
+what that looks like in the data:
 
 | Observation | Value |
 | --- | --- |
@@ -53,8 +56,7 @@ the KPIs is the safer choice.
 | Claim status split | 24.5% to 25.4% for each of four statuses |
 | Claims per sale, by sale year | 2.86% to 2.92% |
 
-Real retail data is not this uniform. Combined with issues 1 and 2, this
-indicates a generated dataset. It is suitable for demonstrating modelling and
+Real retail data is not this uniform. The dataset is suitable for demonstrating modelling and
 reporting technique, not for conclusions about a real business.
 
 ## Recommended controls for a production version

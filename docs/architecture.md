@@ -55,7 +55,7 @@ src/
 │   ├── case-study/            Section layout, bar list, model diagram, Power BI embed
 │   │   └── sections/          One component per case-study section
 │   ├── layout/                Navigation, footer, scroll and error handling
-│   ├── sections/, products/, checkout/   Demo storefront (fictional UI sample)
+│   ├── products/, checkout/   Retail demo (fictional UI sample)
 │   └── ui/                    shadcn/ui primitives
 ├── pages/                     Route components
 └── integrations/supabase/     Generated client, used by the demo checkout only
@@ -65,12 +65,20 @@ src/
 | --- | --- |
 | `/` | The case study |
 | `/analytics` | Full-width embedded Power BI report |
-| `/demo-store`, `/produits`, `/boutiques`, `/support`, `/entreprise`, `/newsroom`, `/carrieres`, `/compte`, `/panier` | Fictional storefront demo from the first version of the app (French) |
+| `/produits`, `/produits/:id` | Retail demo: product catalogue (fictional, French) |
+| `/boutiques` | Retail demo: store locator (fictional) |
+| `/support` | Retail demo: FAQ and warranty-claim status lookup (fictional) |
+| `/panier` | Retail demo: cart and simulated checkout |
 
-The storefront demo is a user-interface exercise with invented products, prices
-and reviews. It has no connection to the Kaggle dataset. Its checkout calls a
-Supabase Edge Function (`supabase/functions/send-order-confirmation`) that sends
-a confirmation email through Resend; this is the only backend in the project.
+The retail demo is a user-interface exercise with invented products, stores and
+prices, labelled as fictional on every page. It has no connection to the Kaggle
+dataset. The pages for company information, careers, news, user account and the
+former storefront home were removed because they were unrelated to the project.
+
+The checkout simulates payment and calls a Supabase Edge Function
+(`supabase/functions/send-order-confirmation`) that sends a confirmation email
+through Resend. This is the only backend in the project; its security model is
+described in [security.md](security.md).
 
 ## Design decisions
 

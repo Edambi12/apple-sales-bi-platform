@@ -28,8 +28,7 @@ dist-ssr
 .env.*
 !.env.example
 
-# Power BI artefacts and raw data (dataset licence must be confirmed before redistribution)
-*.pbix
-*.pbit
+# Raw dataset files: download them from Kaggle instead (MIT licence, ~36 MB).
+# The .pbix may be committed once updated; credit the Kaggle source if you do.
 data/raw/
 *.csv

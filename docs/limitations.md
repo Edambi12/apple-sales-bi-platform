@@ -26,9 +26,11 @@
 
 ## Data nature
 
-- The uniform distributions documented in the
-  [data quality report](data-quality.md) indicate synthetic data. Results are
-  not evidence about Apple Inc.'s actual sales, stores or service activity.
+- The dataset is synthetic. Its Kaggle page says it "is not based on real Apple
+  Inc. data" and was "created using Python and LLM-generated insights"; the
+  uniform distributions in the [data quality report](data-quality.md) are
+  consistent with that. Results are not evidence about Apple Inc.'s actual
+  sales, stores or service activity.
 - Stores, cities and product names resemble real ones; their figures are not real.
 
 ## Report
@@ -43,18 +45,37 @@ the report and this documentation:
 | "Délai moyen de réclamation" card | Not a valid KPI — recommended for removal |
 | Page name "Distrubition" | Distribution |
 
-The corrections are listed in the
-[Power BI improvement report](../powerbi/improvement-report.md) and require a
-manual update in Power BI Desktop.
+The corrections require a manual update in Power BI Desktop; the step-by-step
+[PBIX update checklist](../powerbi/pbix-update-checklist.md) covers them.
 
 ## Licensing
 
-- The dataset belongs to its Kaggle publisher. Its licence could not be checked
-  automatically while preparing this repository and **must be confirmed on the
-  Kaggle page** before the CSV files, or the `.pbix` that embeds them, are
-  redistributed. Until then both are excluded through `.gitignore`.
-- The repository does not yet declare a licence for its own code and
-  documentation.
+**Dataset.** The Kaggle page of the
+[Apple Retail Sales Dataset](https://www.kaggle.com/datasets/amangarg08/apple-retail-sales-dataset)
+(publisher `amangarg08`) displays **License: MIT**, and its description says:
+"You may freely use, modify, and share this dataset for learning, research, or
+portfolio projects." Checked on 10 November 2026.
+
+What this means for the repository:
+
+- Using the data, publishing the analysis and sharing the `.pbix` (which embeds
+  the data) are permitted.
+- The MIT licence asks that the licence notice travel with copies. If the CSV
+  files or the `.pbix` are added to this repository, add a `NOTICE` or a line in
+  `powerbi/README.md` naming the source, the publisher and the MIT licence.
+- The Kaggle page does not provide a licence text file or a copyright line of
+  its own, so cite the page URL and the publisher's username as the attribution.
+- A licence shown on Kaggle is the publisher's declaration. It covers the
+  synthetic data only and grants no right over Apple's trademarks.
+- Recheck the page before redistributing: a publisher can change the licence.
+
+The CSV files remain excluded from the repository by `.gitignore` because of
+their size (the dataset is about 36 MB) and because Kaggle is the reference
+source. The `.pbix` is no longer excluded and can be added once it has been
+updated — see the [PBIX update checklist](../powerbi/pbix-update-checklist.md).
+
+**Repository.** The repository does not yet declare a licence for its own code
+and documentation.
 
 ## Trademark
 

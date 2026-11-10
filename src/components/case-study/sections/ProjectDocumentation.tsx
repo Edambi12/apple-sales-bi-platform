@@ -13,8 +13,10 @@ const DOCS = [
   { title: "Architecture", path: "docs/architecture.md" },
   { title: "Data quality", path: "docs/data-quality.md" },
   { title: "Limitations", path: "docs/limitations.md" },
+  { title: "Security", path: "docs/security.md" },
   { title: "DAX measures", path: "powerbi/measures.dax" },
-  { title: "Power BI review and roadmap", path: "powerbi/improvement-report.md" },
+  { title: "Power BI review", path: "powerbi/improvement-report.md" },
+  { title: "PBIX update checklist", path: "powerbi/pbix-update-checklist.md" },
 ];
 
 const TOOLS = [

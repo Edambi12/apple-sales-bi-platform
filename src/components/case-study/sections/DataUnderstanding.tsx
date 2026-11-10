@@ -68,10 +68,11 @@ export function DataUnderstanding() {
             claims are dated before the sale they refer to. These rows are kept
             and disclosed rather than silently removed.
           </Callout>
-          <Callout title="Very likely synthetic data">
-            Quantities are spread almost evenly from 1 to 10, and 47% of sales
-            predate the listed launch date of the product sold. Findings describe
-            this dataset only — not Apple's real business.
+          <Callout title="Synthetic data, MIT licence">
+            The publisher states the dataset is synthetic and not based on real
+            Apple Inc. data, and shares it under the MIT licence. It shows:
+            quantities are spread evenly from 1 to 10, and 47% of sales predate
+            the product's launch date. Findings describe this dataset only.
           </Callout>
         </div>
       </div>
